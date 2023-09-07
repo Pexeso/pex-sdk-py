@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-import pexae
+import pex
 
 
 CLIENT_ID = "#YOUR_CLIENT_ID_HERE"
@@ -12,12 +12,12 @@ INPUT_FILE = "/Users/stepan/Downloads/query04.mp3"
 
 def main():
     # Initialize and authenticate the client.
-    client = pexae.PexSearchClient(CLIENT_ID, CLIENT_SECRET)
+    client = pex.PexSearchClient(CLIENT_ID, CLIENT_SECRET)
 
     # Optionally mock the client. If a client is mocked, it will only
     # communicate with the local mockserver instead of production servers. This
     # is useful for testing.
-    pexae.mock_client(client)
+    pex.mock_client(client)
 
     # Fingerprint a file. You can also fingerprint a buffer with
     #
@@ -34,7 +34,7 @@ def main():
     ft = client.fingerprint_file(INPUT_FILE)
 
     # Build the request.
-    req = pexae.PexSearchRequest(fingerprint=ft)
+    req = pex.PexSearchRequest(fingerprint=ft)
 
     # Start the search.
     future = client.start_search(req)
