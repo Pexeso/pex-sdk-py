@@ -1,0 +1,17 @@
+dl.py.class {
+  margin-top: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+dl.py.method {
+  margin-bottom: 20px;
+}
+
+dl.py.method dt {
+  padding-left: 0;
+}
+
+dl.py.method dd p {
+  margin-bottom: 5px;
+}
