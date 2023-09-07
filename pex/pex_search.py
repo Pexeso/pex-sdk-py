@@ -1,11 +1,11 @@
-# Copyright 2020 Pexeso Inc. All rights reserved.
+# Copyright 2023 Pexeso Inc. All rights reserved.
 
 import ctypes
 from datetime import datetime
 from collections import namedtuple
 from enum import Enum
 
-from pexae.lib import (
+from pex.lib import (
     _lib,
     _AE_Status,
     _AE_Lock,
@@ -17,10 +17,10 @@ from pexae.lib import (
     _AE_CheckSearchResult,
     _AE_SearchMatch,
 )
-from pexae.errors import AEError
-from pexae.common import SegmentType, Segment
-from pexae.client import _ClientType, _init_client
-from pexae.fingerprint import _Fingerprinter
+from pex.errors import Error
+from pex.common import SegmentType, Segment, _extract_segments
+from pex.client import _ClientType, _init_client
+from pex.fingerprint import _Fingerprinter
 
 
 class PexSearchAsset(object):
@@ -112,6 +112,7 @@ class PexSearchAsset(object):
             artist=_lib.AE_Asset_GetArtist(c_asset.get()).decode(),
             duration=_lib.AE_Asset_GetDuration(c_asset.get()),
         )
+
 
 class PexSearchRequest(object):
     """
@@ -245,7 +246,7 @@ class PexSearchFuture(object):
         """
         Blocks until the search result is ready and then returns it.
 
-        :raise: :class:`AEError` if the search couldn't be performed, e.g.
+        :raise: :class:`Error` if the search couldn't be performed, e.g.
                 because of network issues.
         :rtype: PexSearchResult
         """
@@ -259,12 +260,12 @@ class PexSearchFuture(object):
         _lib.AE_CheckSearchRequest_SetLookupID(
             c_req.get(), self._lookup_id.encode(), c_status.get()
         )
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
         _lib.AE_CheckSearch(
             self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
         )
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
         c_match = _AE_SearchMatch.new(_lib)
         c_matches_pos = ctypes.c_int(0)
@@ -276,12 +277,12 @@ class PexSearchFuture(object):
             c_res.get(), c_match.get(), ctypes.byref(c_matches_pos)
         ):
             _lib.AE_SearchMatch_GetAsset(c_match.get(), c_asset.get(), c_status.get())
-            AEError.check_status(c_status)
+            Error.check_status(c_status)
 
             matches.append(
                 PexSearchMatch(
                     asset=PexSearchAsset.extract(c_asset),
-                    segments=_extract_search_segments(c_match),
+                    segments=_extract_segments(c_match),
                 )
             )
 
@@ -315,7 +316,7 @@ class PexSearchClient(_Fingerprinter):
         initiate the search on the backend service.
 
         :param PexSearchRequest req: search parameters.
-        :raise: :class:`AEError` if the search couldn’t be initiated, e.g.
+        :raise: :class:`Error` if the search couldn’t be initiated, e.g.
                 because of network issues.
         :rtype: PexSearchFuture
         """
@@ -332,42 +333,12 @@ class PexSearchClient(_Fingerprinter):
         _lib.AE_StartSearchRequest_SetFingerprint(
             c_req.get(), c_ft.get(), c_status.get()
         )
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
         _lib.AE_StartSearch(
             self._c_client.get(), c_req.get(), c_res.get(), c_status.get()
         )
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
         lookup_id = _lib.AE_StartSearchResult_GetLookupID(c_res.get()).decode()
         return PexSearchFuture(self._c_client, lookup_id)
-
-
-def _extract_search_segments(c_match):
-    c_query_start = ctypes.c_int64(0)
-    c_query_end = ctypes.c_int64(0)
-    c_asset_start = ctypes.c_int64(0)
-    c_asset_end = ctypes.c_int64(0)
-    c_type = ctypes.c_int(0)
-    c_segments_pos = ctypes.c_int(0)
-
-    segments = []
-    while _lib.AE_SearchMatch_NextSegment(
-        c_match.get(),
-        ctypes.byref(c_query_start),
-        ctypes.byref(c_query_end),
-        ctypes.byref(c_asset_start),
-        ctypes.byref(c_asset_end),
-        ctypes.byref(c_type),
-        ctypes.byref(c_segments_pos),
-    ):
-        segments.append(
-            Segment(
-                typ=SegmentType(c_type.value),
-                query_start=c_query_start.value,
-                query_end=c_query_end.value,
-                asset_start=c_asset_start.value,
-                asset_end=c_asset_end.value,
-            )
-        )
-    return segments

@@ -1,23 +1,25 @@
-# Copyright 2020 Pexeso Inc. All rights reserved.
+# Copyright 2023 Pexeso Inc. All rights reserved.
 
 import ctypes
 from datetime import datetime
 from collections import namedtuple
 from enum import Enum
 
-from pexae.lib import (
+from pex.lib import (
     _lib,
     _AE_Status,
     _AE_Lock,
     _AE_Buffer,
-    _AE_PrivateSearchStartRequest,
-    _AE_PrivateSearchStartResult,
-    _AE_PrivateSearchCheckRequest,
-    _AE_PrivateSearchCheckResult,
-    _AE_PrivateSearchMatch,
+    _AE_StartSearchRequest,
+    _AE_StartSearchResult,
+    _AE_CheckSearchRequest,
+    _AE_CheckSearchResult,
+    _AE_SearchMatch,
 )
-from pexae.errors import AEError
-from pexae.common import SegmentType, Segment
+from pex.errors import Error
+from pex.common import SegmentType, Segment, _extract_segments
+from pex.client import _ClientType, _init_client
+from pex.fingerprint import _Fingerprinter
 
 
 class PrivateSearchRequest(object):
@@ -143,15 +145,15 @@ class PrivateSearchFuture(object):
     and is used to retrieve a search result.
     """
 
-    def __init__(self, client, lookup_id):
-        self._raw_c_client = client._c_client.get()
+    def __init__(self, c_client, lookup_id):
+        self._raw_c_client = c_client.get()
         self._lookup_id = lookup_id
 
     def get(self):
         """
         Blocks until the search result is ready and then returns it.
 
-        :raise: :class:`AEError` if the search couldn't be performed, e.g.
+        :raise: :class:`Error` if the search couldn't be performed, e.g.
                 because of network issues.
         :rtype: PrivateSearchResult
         """
@@ -159,38 +161,38 @@ class PrivateSearchFuture(object):
         lock = _AE_Lock.new(_lib)
 
         c_status = _AE_Status.new(_lib)
-        c_req = _AE_PrivateSearchCheckRequest.new(_lib)
-        c_res = _AE_PrivateSearchCheckResult.new(_lib)
+        c_req = _AE_CheckSearchRequest.new(_lib)
+        c_res = _AE_CheckSearchResult.new(_lib)
 
-        _lib.AE_PrivateSearchCheckRequest_SetLookupID(
+        _lib.AE_CheckSearchRequest_SetLookupID(
             c_req.get(), self._lookup_id.encode(), c_status.get()
         )
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
-        _lib.AE_PrivateSearch_Check(
+        _lib.AE_CheckSearch(
             self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
         )
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
-        c_match = _AE_PrivateSearchMatch.new(_lib)
+        c_match = _AE_SearchMatch.new(_lib)
         c_matches_pos = ctypes.c_int(0)
 
         matches = []
-        while _lib.AE_PrivateSearchCheckResult_NextMatch(
+        while _lib.AE_CheckSearchResult_NextMatch(
             c_res.get(), c_match.get(), ctypes.byref(c_matches_pos)
         ):
+            provided_id = _lib.AE_SearchMatch_GetProvidedID(c_match.get(), c_status.get())
+            Error.check_status(c_status)
+
             matches.append(
                 PrivateSearchMatch(
-                    provided_id=_lib.AE_PrivateSearchMatch_GetProvidedID(
-                        c_match.get()).decode() ,
-                    segments=_extract_private_search_segments(c_match),
+                    provided_id=provided_id.decode(),
+                    segments=_extract_segments(c_match),
                 )
             )
 
         return PrivateSearchResult(
-            lookup_id=_lib.AE_PrivateSearchCheckResult_GetLookupID(
-                c_res.get()
-            ).decode(),
+            lookup_id=self._lookup_id,
             matches=matches,
         )
 
@@ -208,80 +210,53 @@ class PrivateSearchFuture(object):
         return "PrivateSearchFuture(lookup_id={})".format(self._lookup_id)
 
 
-def _start_private_search(client, req):
-    """
-    Starts a private search. This operation does not block until the
-    search is finished, it does however perform a network operation to
-    initiate the search on the backend service.
+class PrivateSearchClient(_Fingerprinter):
+    def __init__(self, client_id, client_secret):
+        self._c_client = _init_client(_ClientType.PRIVATE_SEARCH, client_id, client_secret)
 
-    :param PrivateSearchRequest req: search parameters.
-    :raise: :class:`AEError` if the search couldn’t be initiated, e.g.
-            because of network issues.
-    :rtype: PrivateSearchFuture
-    """
+    def start_search(self, req):
+        """
+        Starts a private search. This operation does not block until the
+        search is finished, it does however perform a network operation to
+        initiate the search on the backend service.
 
-    lock = _AE_Lock.new(_lib)
+        :param PrivateSearchRequest req: search parameters.
+        :raise: :class:`Error` if the search couldn’t be initiated, e.g.
+                because of network issues.
+        :rtype: PrivateSearchFuture
+        """
 
-    c_status = _AE_Status.new(_lib)
-    c_ft = _AE_Buffer.new(_lib)
-    c_req = _AE_PrivateSearchStartRequest.new(_lib)
-    c_res = _AE_PrivateSearchStartResult.new(_lib)
+        lock = _AE_Lock.new(_lib)
 
-    _lib.AE_Buffer_Set(c_ft.get(), req.fingerprint._ft, len(req.fingerprint._ft))
+        c_status = _AE_Status.new(_lib)
+        c_ft = _AE_Buffer.new(_lib)
+        c_req = _AE_StartSearchRequest.new(_lib)
+        c_res = _AE_StartSearchResult.new(_lib)
 
-    _lib.AE_PrivateSearchStartRequest_SetFingerprint(
-        c_req.get(), c_ft.get(), c_status.get()
-    )
-    AEError.check_status(c_status)
+        _lib.AE_Buffer_Set(c_ft.get(), req.fingerprint._ft, len(req.fingerprint._ft))
 
-    _lib.AE_PrivateSearch_Start(
-        client._c_client.get(), c_req.get(), c_res.get(), c_status.get()
-    )
-    AEError.check_status(c_status)
-
-    lookup_id = _lib.AE_PrivateSearchStartResult_GetLookupID(c_res.get()).decode()
-    return PrivateSearchFuture(client, lookup_id)
-
-
-def _ingest_private_search_asset(client, provided_id, ft):
-    lock = _AE_Lock.new(_lib)
-
-    c_status = _AE_Status.new(_lib)
-    c_ft = _AE_Buffer.new(_lib)
-
-    _lib.AE_Buffer_Set(c_ft.get(), ft._ft, len(ft._ft))
-
-    _lib.AE_PrivateSearch_Ingest(
-        client._c_client.get(), provided_id.encode(), c_ft.get(), c_status.get()
-    )
-    AEError.check_status(c_status)
-
-
-def _extract_private_search_segments(c_match):
-    c_query_start = ctypes.c_int64(0)
-    c_query_end = ctypes.c_int64(0)
-    c_asset_start = ctypes.c_int64(0)
-    c_asset_end = ctypes.c_int64(0)
-    c_type = ctypes.c_int(0)
-    c_segments_pos = ctypes.c_int(0)
-
-    segments = []
-    while _lib.AE_PrivateSearchMatch_NextSegment(
-        c_match.get(),
-        ctypes.byref(c_query_start),
-        ctypes.byref(c_query_end),
-        ctypes.byref(c_asset_start),
-        ctypes.byref(c_asset_end),
-        ctypes.byref(c_type),
-        ctypes.byref(c_segments_pos),
-    ):
-        segments.append(
-            Segment(
-                typ=SegmentType(c_type.value),
-                query_start=c_query_start.value,
-                query_end=c_query_end.value,
-                asset_start=c_asset_start.value,
-                asset_end=c_asset_end.value,
-            )
+        _lib.AE_StartSearchRequest_SetFingerprint(
+            c_req.get(), c_ft.get(), c_status.get()
         )
-    return segments
+        Error.check_status(c_status)
+
+        _lib.AE_StartSearch(
+            self._c_client.get(), c_req.get(), c_res.get(), c_status.get()
+        )
+        Error.check_status(c_status)
+
+        lookup_id = _lib.AE_StartSearchResult_GetLookupID(c_res.get()).decode()
+        return PrivateSearchFuture(self._c_client, lookup_id)
+
+    def ingest(self, provided_id, ft):
+        lock = _AE_Lock.new(_lib)
+
+        c_status = _AE_Status.new(_lib)
+        c_ft = _AE_Buffer.new(_lib)
+
+        _lib.AE_Buffer_Set(c_ft.get(), ft._ft, len(ft._ft))
+
+        _lib.AE_Ingest(
+            self._c_client.get(), provided_id.encode(), c_ft.get(), c_status.get()
+        )
+        Error.check_status(c_status)

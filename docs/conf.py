@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Attribution Engine SDK'
-copyright = '2020, Pexeso Inc.'
+project = 'Pex SDK'
+copyright = '2023, Pexeso Inc.'
 author = 'Pexeso Inc.'
 
 # The full version, including alpha/beta/rc tags

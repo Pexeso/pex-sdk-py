@@ -1,13 +1,13 @@
-# Copyright 2020 Pexeso Inc. All rights reserved.
+# Copyright 2023 Pexeso Inc. All rights reserved.
 
 from enum import Enum
 
-from pexae.lib import _lib
+from pex.lib import _lib
 
 
 class Code(Enum):
     """
-    Error codes that are associated with :class:`~AEError`.
+    Error codes that are associated with :class:`~Error`.
     """
 
     OK = 0
@@ -24,7 +24,7 @@ class Code(Enum):
     LOOKUP_TIMED_OUT = 11
 
 
-class AEError(RuntimeError):
+class Error(RuntimeError):
     """
     An instance of this class will be raised by a number of the SDK calls.
     """
@@ -33,18 +33,18 @@ class AEError(RuntimeError):
     def check(code, message):
         c = Code(code)
         if c != Code.OK:
-            raise AEError(c, message)
+            raise Error(c, message)
 
     @staticmethod
     def check_status(c_status):
         if not _lib.AE_Status_OK(c_status.get()):
-            raise AEError.from_status(c_status)
+            raise Error.from_status(c_status)
 
     @staticmethod
     def from_status(c_status):
         code = _lib.AE_Status_GetCode(c_status.get())
         message = _lib.AE_Status_GetMessage(c_status.get())
-        return AEError(Code(code), message.decode())
+        return Error(Code(code), message.decode())
 
     def __init__(self, code, message):
         super().__init__("{}: {}".format(code, message))

@@ -1,10 +1,10 @@
-# Copyright 2020 Pexeso Inc. All rights reserved.
+# Copyright 2023 Pexeso Inc. All rights reserved.
 
 from enum import IntEnum
 import ctypes
 
-from pexae.lib import _lib, _AE_Status, _AE_Buffer, _AE_Lock
-from pexae.errors import AEError
+from pex.lib import _lib, _AE_Status, _AE_Buffer, _AE_Lock
+from pex.errors import Error
 
 
 class FingerprintType(IntEnum):
@@ -35,7 +35,7 @@ class _Fingerprinter(object):
         the function must be a path to a valid file in supported format.
 
         :param str path: path to the media file we're trying to fingerprint.
-        :raise: :class:`AEError` if the media file is missing or invalid.
+        :raise: :class:`Error` if the media file is missing or invalid.
         :rtype: Fingerprint
         """
         lk = _AE_Lock.new(_lib)
@@ -44,7 +44,7 @@ class _Fingerprinter(object):
         c_status = _AE_Status.new(_lib)
 
         _lib.AE_Fingerprint_File_For_Types(path.encode(), c_ft.get(), c_status.get(), int(ft_types))
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
         data = _lib.AE_Buffer_GetData(c_ft.get())
         size = _lib.AE_Buffer_GetSize(c_ft.get())
@@ -57,7 +57,7 @@ class _Fingerprinter(object):
         buffer.
 
         :param bytes buf: A byte buffer holding a media file.
-        :raise: :class:`AEError` if the buffer holds invalid data.
+        :raise: :class:`Error` if the buffer holds invalid data.
         :rtype: Fingerprint
         """
 
@@ -70,7 +70,7 @@ class _Fingerprinter(object):
         _lib.AE_Buffer_Set(c_buf.get(), buf, len(buf))
 
         _lib.AE_Fingerprint_Buffer_For_Types(c_buf.get(), c_ft.get(), c_status.get(), int(ft_types))
-        AEError.check_status(c_status)
+        Error.check_status(c_status)
 
         data = _lib.AE_Buffer_GetData(c_ft.get())
         size = _lib.AE_Buffer_GetSize(c_ft.get())

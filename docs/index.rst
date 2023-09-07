@@ -2,7 +2,7 @@
 Getting started
 ################################################################################
 
-Welcome to the Python bindings reference manual for the Attribution Engine's SDK.
+Welcome to the Python bindings reference manual for the Pex SDK.
 
 **Important!** Please make sure to install the core library, `as described here </installation/>`_.
 
