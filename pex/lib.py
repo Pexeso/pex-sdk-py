@@ -279,10 +279,12 @@ def _load_lib():
     ]
     lib.AE_StartSearchResult_Delete.restype = None
 
-    lib.AE_StartSearchResult_GetLookupID.argtypes = [
-        ctypes.POINTER(_AE_StartSearchResult)
+    lib.AE_StartSearchResult_NextLookupID.argtypes = [
+        ctypes.POINTER(_AE_StartSearchResult),
+        ctypes.POINTER(ctypes.c_size_t),
+        ctypes.POINTER(ctypes.c_char_p),
     ]
-    lib.AE_StartSearchResult_GetLookupID.restype = ctypes.c_char_p
+    lib.AE_StartSearchResult_NextLookupID.restype = ctypes.c_bool
 
     # AE_CheckSearchRequest
     lib.AE_CheckSearchRequest_New.argtypes = []
@@ -295,12 +297,11 @@ def _load_lib():
     ]
     lib.AE_CheckSearchRequest_Delete.restype = None
 
-    lib.AE_CheckSearchRequest_SetLookupID.argtypes = [
+    lib.AE_CheckSearchRequest_AddLookupID.argtypes = [
         ctypes.POINTER(_AE_CheckSearchRequest),
         ctypes.c_char_p,
-        ctypes.POINTER(_AE_Status),
     ]
-    lib.AE_CheckSearchRequest_SetLookupID.restype = None
+    lib.AE_CheckSearchRequest_AddLookupID.restype = None
 
     # AE_CheckSearchResult
     lib.AE_CheckSearchResult_New.argtypes = []
