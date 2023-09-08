@@ -189,19 +189,19 @@ class PexSearchResult(object):
     successful comptetion.
     """
 
-    def __init__(self, lookup_id, matches):
-        self._lookup_id = lookup_id
+    def __init__(self, lookup_ids, matches):
+        self._lookup_ids = lookup_ids
         self._matches = matches
 
     @property
-    def lookup_id(self):
+    def lookup_ids(self):
         """
-        An ID that uniquely identifies a particular search. Can be used for
-        diagnostics.
+        A list of IDs that uniquely identify a particular search. Can be
+        used for diagnostics.
 
-        :type: int
+        :type: List[str]
         """
-        return self._lookup_id
+        return self._lookup_ids
 
     @property
     def matches(self):
@@ -214,21 +214,21 @@ class PexSearchResult(object):
 
     def to_json(self):
         return {
-            "LookupID": self._lookup_id,
+            "LookupIDs": self._lookup_ids,
             "Matches": [m.to_json() for m in self._matches],
         }
 
     @classmethod
     def from_json(cls, j):
-        lookup_id = j["LookupID"]
+        lookup_ids = j["LookupIDs"]
         matches = []
         if j.get("Matches") is not None:
             matches = [PexSearchMatch.from_json(s) for s in j["Matches"]]
-        return PexSearchResult(lookup_id, matches)
+        return PexSearchResult(lookup_ids, matches)
 
     def __repr__(self):
-        return "PexSearchResult(lookup_id={},matches=<{} objects>)".format(
-            self.lookup_id, len(self.matches)
+        return "PexSearchResult(lookup_ids={},matches=<{} objects>)".format(
+            self.lookup_ids, len(self.matches)
         )
 
 
@@ -238,9 +238,9 @@ class PexSearchFuture(object):
     and is used to retrieve a search result.
     """
 
-    def __init__(self, client, lookup_id):
+    def __init__(self, client, lookup_ids):
         self._raw_c_client = client.get()
-        self._lookup_id = lookup_id
+        self._lookup_ids = lookup_ids
 
     def get(self):
         """
@@ -257,10 +257,10 @@ class PexSearchFuture(object):
         c_req = _AE_CheckSearchRequest.new(_lib)
         c_res = _AE_CheckSearchResult.new(_lib)
 
-        _lib.AE_CheckSearchRequest_SetLookupID(
-            c_req.get(), self._lookup_id.encode(), c_status.get()
-        )
-        Error.check_status(c_status)
+        for lookup_id in self._lookup_ids:
+            _lib.AE_CheckSearchRequest_AddLookupID(
+                c_req.get(), lookup_id.encode()
+            )
 
         _lib.AE_CheckSearch(
             self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
@@ -287,22 +287,22 @@ class PexSearchFuture(object):
             )
 
         return PexSearchResult(
-            lookup_id=self._lookup_id,
+            lookup_ids=self._lookup_ids,
             matches=matches,
         )
 
     @property
-    def lookup_id(self):
+    def lookup_ids(self):
         """
-        An ID that uniquely identifies a particular search. Can be used for
-        diagnostics.
+        A list of IDs that uniquely identify a particular search. Can be
+        used for diagnostics.
 
-        :type: str
+        :type: List[str]
         """
-        return self._lookup_id
+        return self._lookup_ids
 
     def __repr__(self):
-        return "PexSearchFuture(lookup_id={})".format(self._lookup_id)
+        return "PexSearchFuture(lookup_ids={})".format(self._lookup_ids)
 
 
 class PexSearchClient(_Fingerprinter):
@@ -340,5 +340,16 @@ class PexSearchClient(_Fingerprinter):
         )
         Error.check_status(c_status)
 
-        lookup_id = _lib.AE_StartSearchResult_GetLookupID(c_res.get()).decode()
-        return PexSearchFuture(self._c_client, lookup_id)
+
+        lookup_ids = list()
+        c_lookup_id_pos = ctypes.c_size_t(0)
+        c_lookup_id = ctypes.c_char_p()
+
+        while _lib.AE_StartSearchResult_NextLookupID(
+            c_res.get(),
+            ctypes.byref(c_lookup_id_pos),
+            ctypes.byref(c_lookup_id)
+        ):
+            lookup_ids.append(c_lookup_id.value.decode())
+
+        return PexSearchFuture(self._c_client, lookup_ids)
