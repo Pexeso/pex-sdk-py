@@ -37,13 +37,13 @@ class Error(RuntimeError):
 
     @staticmethod
     def check_status(c_status):
-        if not _lib.AE_Status_OK(c_status.get()):
+        if not _lib.Pex_Status_OK(c_status.get()):
             raise Error.from_status(c_status)
 
     @staticmethod
     def from_status(c_status):
-        code = _lib.AE_Status_GetCode(c_status.get())
-        message = _lib.AE_Status_GetMessage(c_status.get())
+        code = _lib.Pex_Status_GetCode(c_status.get())
+        message = _lib.Pex_Status_GetMessage(c_status.get())
         return Error(Code(code), message.decode())
 
     def __init__(self, code, message):

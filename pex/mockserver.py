@@ -1,6 +1,6 @@
 # Copyright 2023 Pexeso Inc. All rights reserved.
 
-from .lib import _lib, _AE_Status, _AE_Lock
+from .lib import _lib, _Pex_Status, _Pex_Lock
 from pex.errors import Error
 
 
@@ -14,8 +14,8 @@ def mock_client(client):
             or the provided authentication credentials are invalid.
     """
 
-    lock = _AE_Lock.new(_lib)
+    lock = _Pex_Lock.new(_lib)
 
-    c_status = _AE_Status.new(_lib)
-    _lib.AE_Mockserver_InitClient(client._c_client.get(), None, c_status.get())
+    c_status = _Pex_Status.new(_lib)
+    _lib.Pex_Mockserver_InitClient(client._c_client.get(), None, c_status.get())
     Error.check_status(c_status)

@@ -3,7 +3,7 @@
 from enum import IntEnum
 import ctypes
 
-from pex.lib import _lib, _AE_Status, _AE_Buffer, _AE_Lock
+from pex.lib import _lib, _Pex_Status, _Pex_Buffer, _Pex_Lock
 from pex.errors import Error
 
 
@@ -38,16 +38,16 @@ class _Fingerprinter(object):
         :raise: :class:`Error` if the media file is missing or invalid.
         :rtype: Fingerprint
         """
-        lk = _AE_Lock.new(_lib)
+        lk = _Pex_Lock.new(_lib)
 
-        c_ft = _AE_Buffer.new(_lib)
-        c_status = _AE_Status.new(_lib)
+        c_ft = _Pex_Buffer.new(_lib)
+        c_status = _Pex_Status.new(_lib)
 
-        _lib.AE_Fingerprint_File_For_Types(path.encode(), c_ft.get(), c_status.get(), int(ft_types))
+        _lib.Pex_Fingerprint_File_For_Types(path.encode(), c_ft.get(), c_status.get(), int(ft_types))
         Error.check_status(c_status)
 
-        data = _lib.AE_Buffer_GetData(c_ft.get())
-        size = _lib.AE_Buffer_GetSize(c_ft.get())
+        data = _lib.Pex_Buffer_GetData(c_ft.get())
+        size = _lib.Pex_Buffer_GetSize(c_ft.get())
         ft = ctypes.string_at(data, size)
         return Fingerprint(ft)
 
@@ -61,19 +61,19 @@ class _Fingerprinter(object):
         :rtype: Fingerprint
         """
 
-        lk = _AE_Lock.new(_lib)
+        lk = _Pex_Lock.new(_lib)
 
-        c_status = _AE_Status.new(_lib)
-        c_buf = _AE_Buffer.new(_lib)
-        c_ft = _AE_Buffer.new(_lib)
+        c_status = _Pex_Status.new(_lib)
+        c_buf = _Pex_Buffer.new(_lib)
+        c_ft = _Pex_Buffer.new(_lib)
 
-        _lib.AE_Buffer_Set(c_buf.get(), buf, len(buf))
+        _lib.Pex_Buffer_Set(c_buf.get(), buf, len(buf))
 
-        _lib.AE_Fingerprint_Buffer_For_Types(c_buf.get(), c_ft.get(), c_status.get(), int(ft_types))
+        _lib.Pex_Fingerprint_Buffer_For_Types(c_buf.get(), c_ft.get(), c_status.get(), int(ft_types))
         Error.check_status(c_status)
 
-        data = _lib.AE_Buffer_GetData(c_ft.get())
-        size = _lib.AE_Buffer_GetSize(c_ft.get())
+        data = _lib.Pex_Buffer_GetData(c_ft.get())
+        size = _lib.Pex_Buffer_GetSize(c_ft.get())
         ft = ctypes.string_at(data, size)
         return Fingerprint(ft)
 

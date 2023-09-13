@@ -7,14 +7,14 @@ from enum import Enum
 
 from pex.lib import (
     _lib,
-    _AE_Status,
-    _AE_Lock,
-    _AE_Buffer,
-    _AE_StartSearchRequest,
-    _AE_StartSearchResult,
-    _AE_CheckSearchRequest,
-    _AE_CheckSearchResult,
-    _AE_SearchMatch,
+    _Pex_Status,
+    _Pex_Lock,
+    _Pex_Buffer,
+    _Pex_StartSearchRequest,
+    _Pex_StartSearchResult,
+    _Pex_CheckSearchRequest,
+    _Pex_CheckSearchResult,
+    _Pex_SearchMatch,
 )
 from pex.errors import Error
 from pex.common import SegmentType, Segment, _extract_segments
@@ -158,30 +158,30 @@ class PrivateSearchFuture(object):
         :rtype: PrivateSearchResult
         """
 
-        lock = _AE_Lock.new(_lib)
+        lock = _Pex_Lock.new(_lib)
 
-        c_status = _AE_Status.new(_lib)
-        c_req = _AE_CheckSearchRequest.new(_lib)
-        c_res = _AE_CheckSearchResult.new(_lib)
+        c_status = _Pex_Status.new(_lib)
+        c_req = _Pex_CheckSearchRequest.new(_lib)
+        c_res = _Pex_CheckSearchResult.new(_lib)
 
         for lookup_id in self._lookup_ids:
-            _lib.AE_CheckSearchRequest_AddLookupID(
+            _lib.Pex_CheckSearchRequest_AddLookupID(
                 c_req.get(), lookup_id.encode()
             )
 
-        _lib.AE_CheckSearch(
+        _lib.Pex_CheckSearch(
             self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
         )
         Error.check_status(c_status)
 
-        c_match = _AE_SearchMatch.new(_lib)
+        c_match = _Pex_SearchMatch.new(_lib)
         c_matches_pos = ctypes.c_int(0)
 
         matches = []
-        while _lib.AE_CheckSearchResult_NextMatch(
+        while _lib.Pex_CheckSearchResult_NextMatch(
             c_res.get(), c_match.get(), ctypes.byref(c_matches_pos)
         ):
-            provided_id = _lib.AE_SearchMatch_GetProvidedID(c_match.get(), c_status.get())
+            provided_id = _lib.Pex_SearchMatch_GetProvidedID(c_match.get(), c_status.get())
             Error.check_status(c_status)
 
             matches.append(
@@ -226,21 +226,21 @@ class PrivateSearchClient(_Fingerprinter):
         :rtype: PrivateSearchFuture
         """
 
-        lock = _AE_Lock.new(_lib)
+        lock = _Pex_Lock.new(_lib)
 
-        c_status = _AE_Status.new(_lib)
-        c_ft = _AE_Buffer.new(_lib)
-        c_req = _AE_StartSearchRequest.new(_lib)
-        c_res = _AE_StartSearchResult.new(_lib)
+        c_status = _Pex_Status.new(_lib)
+        c_ft = _Pex_Buffer.new(_lib)
+        c_req = _Pex_StartSearchRequest.new(_lib)
+        c_res = _Pex_StartSearchResult.new(_lib)
 
-        _lib.AE_Buffer_Set(c_ft.get(), req.fingerprint._ft, len(req.fingerprint._ft))
+        _lib.Pex_Buffer_Set(c_ft.get(), req.fingerprint._ft, len(req.fingerprint._ft))
 
-        _lib.AE_StartSearchRequest_SetFingerprint(
+        _lib.Pex_StartSearchRequest_SetFingerprint(
             c_req.get(), c_ft.get(), c_status.get()
         )
         Error.check_status(c_status)
 
-        _lib.AE_StartSearch(
+        _lib.Pex_StartSearch(
             self._c_client.get(), c_req.get(), c_res.get(), c_status.get()
         )
         Error.check_status(c_status)
@@ -249,7 +249,7 @@ class PrivateSearchClient(_Fingerprinter):
         c_lookup_id_pos = ctypes.c_size_t(0)
         c_lookup_id = ctypes.c_char_p()
 
-        while _lib.AE_StartSearchResult_NextLookupID(
+        while _lib.Pex_StartSearchResult_NextLookupID(
             c_res.get(),
             ctypes.byref(c_lookup_id_pos),
             ctypes.byref(c_lookup_id)
@@ -259,14 +259,14 @@ class PrivateSearchClient(_Fingerprinter):
         return PrivateSearchFuture(self._c_client, lookup_ids)
 
     def ingest(self, provided_id, ft):
-        lock = _AE_Lock.new(_lib)
+        lock = _Pex_Lock.new(_lib)
 
-        c_status = _AE_Status.new(_lib)
-        c_ft = _AE_Buffer.new(_lib)
+        c_status = _Pex_Status.new(_lib)
+        c_ft = _Pex_Buffer.new(_lib)
 
-        _lib.AE_Buffer_Set(c_ft.get(), ft._ft, len(ft._ft))
+        _lib.Pex_Buffer_Set(c_ft.get(), ft._ft, len(ft._ft))
 
-        _lib.AE_Ingest(
+        _lib.Pex_Ingest(
             self._c_client.get(), provided_id.encode(), c_ft.get(), c_status.get()
         )
         Error.check_status(c_status)
