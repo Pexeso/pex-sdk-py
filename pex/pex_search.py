@@ -7,15 +7,15 @@ from enum import Enum
 
 from pex.lib import (
     _lib,
-    _AE_Status,
-    _AE_Lock,
-    _AE_Buffer,
-    _AE_Asset,
-    _AE_StartSearchRequest,
-    _AE_StartSearchResult,
-    _AE_CheckSearchRequest,
-    _AE_CheckSearchResult,
-    _AE_SearchMatch,
+    _Pex_Status,
+    _Pex_Lock,
+    _Pex_Buffer,
+    _Pex_Asset,
+    _Pex_StartSearchRequest,
+    _Pex_StartSearchResult,
+    _Pex_CheckSearchRequest,
+    _Pex_CheckSearchResult,
+    _Pex_SearchMatch,
 )
 from pex.errors import Error
 from pex.common import SegmentType, Segment, _extract_segments
@@ -106,11 +106,11 @@ class PexSearchAsset(object):
     @staticmethod
     def extract(c_asset):
         return PexSearchAsset(
-            isrc=_lib.AE_Asset_GetISRC(c_asset.get()).decode(),
-            label=_lib.AE_Asset_GetLabel(c_asset.get()).decode(),
-            title=_lib.AE_Asset_GetTitle(c_asset.get()).decode(),
-            artist=_lib.AE_Asset_GetArtist(c_asset.get()).decode(),
-            duration=_lib.AE_Asset_GetDuration(c_asset.get()),
+            isrc=_lib.Pex_Asset_GetISRC(c_asset.get()).decode(),
+            label=_lib.Pex_Asset_GetLabel(c_asset.get()).decode(),
+            title=_lib.Pex_Asset_GetTitle(c_asset.get()).decode(),
+            artist=_lib.Pex_Asset_GetArtist(c_asset.get()).decode(),
+            duration=_lib.Pex_Asset_GetDuration(c_asset.get()),
         )
 
 
@@ -251,32 +251,32 @@ class PexSearchFuture(object):
         :rtype: PexSearchResult
         """
 
-        lock = _AE_Lock.new(_lib)
+        lock = _Pex_Lock.new(_lib)
 
-        c_status = _AE_Status.new(_lib)
-        c_req = _AE_CheckSearchRequest.new(_lib)
-        c_res = _AE_CheckSearchResult.new(_lib)
+        c_status = _Pex_Status.new(_lib)
+        c_req = _Pex_CheckSearchRequest.new(_lib)
+        c_res = _Pex_CheckSearchResult.new(_lib)
 
         for lookup_id in self._lookup_ids:
-            _lib.AE_CheckSearchRequest_AddLookupID(
+            _lib.Pex_CheckSearchRequest_AddLookupID(
                 c_req.get(), lookup_id.encode()
             )
 
-        _lib.AE_CheckSearch(
+        _lib.Pex_CheckSearch(
             self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
         )
         Error.check_status(c_status)
 
-        c_match = _AE_SearchMatch.new(_lib)
+        c_match = _Pex_SearchMatch.new(_lib)
         c_matches_pos = ctypes.c_int(0)
 
-        c_asset = _AE_Asset.new(_lib)
+        c_asset = _Pex_Asset.new(_lib)
 
         matches = []
-        while _lib.AE_CheckSearchResult_NextMatch(
+        while _lib.Pex_CheckSearchResult_NextMatch(
             c_res.get(), c_match.get(), ctypes.byref(c_matches_pos)
         ):
-            _lib.AE_SearchMatch_GetAsset(c_match.get(), c_asset.get(), c_status.get())
+            _lib.Pex_SearchMatch_GetAsset(c_match.get(), c_asset.get(), c_status.get())
             Error.check_status(c_status)
 
             matches.append(
@@ -321,21 +321,21 @@ class PexSearchClient(_Fingerprinter):
         :rtype: PexSearchFuture
         """
 
-        lock = _AE_Lock.new(_lib)
+        lock = _Pex_Lock.new(_lib)
 
-        c_status = _AE_Status.new(_lib)
-        c_ft = _AE_Buffer.new(_lib)
-        c_req = _AE_StartSearchRequest.new(_lib)
-        c_res = _AE_StartSearchResult.new(_lib)
+        c_status = _Pex_Status.new(_lib)
+        c_ft = _Pex_Buffer.new(_lib)
+        c_req = _Pex_StartSearchRequest.new(_lib)
+        c_res = _Pex_StartSearchResult.new(_lib)
 
-        _lib.AE_Buffer_Set(c_ft.get(), req.fingerprint._ft, len(req.fingerprint._ft))
+        _lib.Pex_Buffer_Set(c_ft.get(), req.fingerprint._ft, len(req.fingerprint._ft))
 
-        _lib.AE_StartSearchRequest_SetFingerprint(
+        _lib.Pex_StartSearchRequest_SetFingerprint(
             c_req.get(), c_ft.get(), c_status.get()
         )
         Error.check_status(c_status)
 
-        _lib.AE_StartSearch(
+        _lib.Pex_StartSearch(
             self._c_client.get(), c_req.get(), c_res.get(), c_status.get()
         )
         Error.check_status(c_status)
@@ -345,7 +345,7 @@ class PexSearchClient(_Fingerprinter):
         c_lookup_id_pos = ctypes.c_size_t(0)
         c_lookup_id = ctypes.c_char_p()
 
-        while _lib.AE_StartSearchResult_NextLookupID(
+        while _lib.Pex_StartSearchResult_NextLookupID(
             c_res.get(),
             ctypes.byref(c_lookup_id_pos),
             ctypes.byref(c_lookup_id)

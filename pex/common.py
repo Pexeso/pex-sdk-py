@@ -129,7 +129,7 @@ def _extract_segments(c_match):
     c_segments_pos = ctypes.c_int(0)
 
     segments = []
-    while _lib.AE_SearchMatch_NextSegment(
+    while _lib.Pex_SearchMatch_NextSegment(
         c_match.get(),
         ctypes.byref(c_query_start),
         ctypes.byref(c_query_end),
