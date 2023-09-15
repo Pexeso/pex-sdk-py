@@ -119,7 +119,7 @@ def _load_lib():
         # Useful for generating documentation.
         return ctypes.CDLL(None)
 
-    name = ctypes.util.find_library("pexae")
+    name = ctypes.util.find_library("pexsdk")
     if name is None:
         raise RuntimeError("failed to find native library")
 
