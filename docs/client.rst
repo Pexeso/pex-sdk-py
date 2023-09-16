@@ -11,8 +11,8 @@ initialize a client and authenticate:
 .. code-block:: python
 
     try:
-        client = pexae.Client("client01", "secret01")
-    except pexae.AEError as err:
+        client = pex.Client("client01", "secret01")
+    except pex.AEError as err:
         pass  # handle error
 
 
@@ -20,5 +20,5 @@ initialize a client and authenticate:
 API reference
 ********************************************************************************
 
-.. autoclass:: pexae.Client()
+.. autoclass:: pex.Client()
    :members:

@@ -15,34 +15,34 @@ Example (creating a fingerprint from a file):
 
 .. code-block:: python
 
-    import pexae
+    import pex
 
     try:
-        client = pexae.NewClient("client01", "secret01")
+        client = pex.NewClient("client01", "secret01")
         ft1 = client.fingerprint_file("/path/to/file1.mp4")
 
-        ft_types = pexae.FingerprintType.VIDEO | pexae.FingerprintType.MELODY
+        ft_types = pex.FingerprintType.VIDEO | pex.FingerprintType.MELODY
         ft2 = client.fingerprint_file("/path/to/file2.mp4", ft_types)
         # ...
-    except pexae.AEError as err:
+    except pex.AEError as err:
         pass  # handle error
 
 Example (creating a fingerprint from a byte buffer):
 
 .. code-block:: python
 
-    import pexae
+    import pex
 
     try:
-        client = pexae.NewClient("client01", "secret01")
+        client = pex.NewClient("client01", "secret01")
         with open("/path/to/file1.mp4", "rb") as fp:
             ft = client.fingerprint_buffer(fp.read())
 
         with open("/path/to/file2.mp4", "rb") as fp:
-            ft = client.fingerprint_buffer(fp.read(), pexae.FingerprintType.AUDIO)
+            ft = client.fingerprint_buffer(fp.read(), pex.FingerprintType.AUDIO)
 
         # ...
-    except pexae.AEError as err:
+    except pex.AEError as err:
         pass  # handle error
 
 .. warning::
