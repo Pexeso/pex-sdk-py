@@ -14,15 +14,15 @@ search result.
 
 .. code-block:: python
 
-    req = pexae.LicenseSearchRequest(fingerprint=ft)
+    req = pex.LicenseSearchRequest(fingerprint=ft)
     try:
-        client = pexae.NewClient("client01", "secret01")
+        client = pex.NewClient("client01", "secret01")
         fut = client.start_license_search(req)
         # do something else in the meantime
         res = fut.get()
-        blocked = res.policies.get('US') == pexae.BasicPolicy.BLOCK
+        blocked = res.policies.get('US') == pex.BasicPolicy.BLOCK
         print("blocked in US: {}".format(blocked))
-    except pexae.AEError as err:
+    except pex.AEError as err:
         pass  # handle error
 
 
@@ -30,16 +30,16 @@ search result.
 API reference
 ********************************************************************************
 
-.. autoclass:: pexae.LicenseSearchRequest
+.. autoclass:: pex.LicenseSearchRequest
 
-.. autoclass:: pexae.RightsholderPolicy()
+.. autoclass:: pex.RightsholderPolicy()
 
-.. autoclass:: pexae.Asset()
+.. autoclass:: pex.Asset()
 
-.. autoclass:: pexae.Segment()
+.. autoclass:: pex.Segment()
 
-.. autoclass:: pexae.LicenseSearchMatch()
+.. autoclass:: pex.LicenseSearchMatch()
 
-.. autoclass:: pexae.LicenseSearchResult()
+.. autoclass:: pex.LicenseSearchResult()
 
-.. autoclass:: pexae.LicenseSearchFuture()
+.. autoclass:: pex.LicenseSearchFuture()

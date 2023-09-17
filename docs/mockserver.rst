@@ -5,7 +5,7 @@ Mockserver
 ################################################################################
 
 Mockserver is a testing server preloaded with some test data that will help you
-write, debug and test your applications. The :func:`pexae.mock_client`
+write, debug and test your applications. The :func:`pex.mock_client`
 function initializes an existing client for use with the mockserver.
 
 More information can be found in the official `Mockserver documentation`_.
@@ -15,9 +15,9 @@ More information can be found in the official `Mockserver documentation`_.
 .. code-block:: python
 
     try:
-        client = pexae.Client("client01", "secret01")
-        pexae.MockClient(client)
-    except pexae.AEError as err:
+        client = pex.Client("client01", "secret01")
+        pex.MockClient(client)
+    except pex.AEError as err:
         pass  # handle error
 
 
@@ -25,4 +25,4 @@ More information can be found in the official `Mockserver documentation`_.
 API reference
 ********************************************************************************
 
-.. autofunction:: pexae.mock_client
+.. autofunction:: pex.mock_client

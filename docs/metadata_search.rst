@@ -13,14 +13,14 @@ search result.
 
 .. code-block:: python
 
-    req = pexae.MetadataSearchRequest(fingerprint=ft)
+    req = pex.MetadataSearchRequest(fingerprint=ft)
     try:
-        client = pexae.NewClient("client01", "secret01")
+        client = pex.NewClient("client01", "secret01")
         future = client.start_metadata_search(req)
         # do something else in the meantime
         res = future.get()
         print("lookup {} returned {} matches".format(res.lookup_id, len(res.matches)))
-    except pexae.AEError as err:
+    except pex.AEError as err:
         pass  # handle error
 
 
@@ -28,14 +28,14 @@ search result.
 API reference
 ********************************************************************************
 
-.. autoclass:: pexae.MetadataSearchRequest
+.. autoclass:: pex.MetadataSearchRequest
 
-.. autoclass:: pexae.Asset()
+.. autoclass:: pex.Asset()
 
-.. autoclass:: pexae.Segment()
+.. autoclass:: pex.Segment()
 
-.. autoclass:: pexae.MetadataSearchMatch()
+.. autoclass:: pex.MetadataSearchMatch()
 
-.. autoclass:: pexae.MetadataSearchResult()
+.. autoclass:: pex.MetadataSearchResult()
 
-.. autoclass:: pexae.MetadataSearchFuture()
+.. autoclass:: pex.MetadataSearchFuture()
