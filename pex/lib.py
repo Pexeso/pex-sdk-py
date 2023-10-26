@@ -98,21 +98,6 @@ class _Pex_CheckSearchResult(ctypes.Structure):
         )
 
 
-class _Pex_SearchMatch(ctypes.Structure):
-    @staticmethod
-    def new(lib):
-        return _SafeObject(
-            lib.Pex_SearchMatch_New,
-            lib.Pex_SearchMatch_Delete
-        )
-
-
-class _Pex_Asset(ctypes.Structure):
-    @staticmethod
-    def new(lib):
-        return _SafeObject(lib.Pex_Asset_New, lib.Pex_Asset_Delete)
-
-
 def _load_lib():
     if os.getenv("PEX_SDK_NO_CORE_LIB") is not None:
         # Defining PEX_SDK_NO_CORE_LIB makes this wrapper module import-able even without the shared library.
@@ -314,45 +299,10 @@ def _load_lib():
     ]
     lib.Pex_CheckSearchResult_Delete.restype = None
 
-    lib.Pex_CheckSearchResult_NextMatch.argtypes = [
+    lib.Pex_CheckSearchResult_GetJSON.argtypes = [
         ctypes.POINTER(_Pex_CheckSearchResult),
-        ctypes.POINTER(_Pex_SearchMatch),
-        ctypes.POINTER(ctypes.c_int),
     ]
-    lib.Pex_CheckSearchResult_NextMatch.restype = ctypes.c_bool
-
-    # Pex_SearchMatch
-    lib.Pex_SearchMatch_New.argtypes = []
-    lib.Pex_SearchMatch_New.restype = ctypes.POINTER(_Pex_SearchMatch)
-
-    lib.Pex_SearchMatch_Delete.argtypes = [
-        ctypes.POINTER(ctypes.POINTER(_Pex_SearchMatch))
-    ]
-    lib.Pex_SearchMatch_Delete.restype = None
-
-    lib.Pex_SearchMatch_GetAsset.argtypes = [
-        ctypes.POINTER(_Pex_SearchMatch),
-        ctypes.POINTER(_Pex_Asset),
-        ctypes.POINTER(_Pex_Status),
-    ]
-    lib.Pex_SearchMatch_GetAsset.restype = None
-
-    lib.Pex_SearchMatch_GetProvidedID.argtypes = [
-        ctypes.POINTER(_Pex_SearchMatch),
-        ctypes.POINTER(_Pex_Status),
-    ]
-    lib.Pex_SearchMatch_GetProvidedID.restype = ctypes.c_char_p
-
-    lib.Pex_SearchMatch_NextSegment.argtypes = [
-        ctypes.POINTER(_Pex_SearchMatch),
-        ctypes.POINTER(ctypes.c_int64),
-        ctypes.POINTER(ctypes.c_int64),
-        ctypes.POINTER(ctypes.c_int64),
-        ctypes.POINTER(ctypes.c_int64),
-        ctypes.POINTER(ctypes.c_int),
-        ctypes.POINTER(ctypes.c_int),
-    ]
-    lib.Pex_SearchMatch_NextSegment.restype = ctypes.c_bool
+    lib.Pex_CheckSearchResult_GetJSON.restype = ctypes.c_char_p
 
     # Pex_Ingest
     lib.Pex_Ingest.argtypes = [
@@ -362,28 +312,6 @@ def _load_lib():
         ctypes.POINTER(_Pex_Status),
     ]
     lib.Pex_Ingest.restype = None
-
-    # Pex_Asset
-    lib.Pex_Asset_New.argtypes = []
-    lib.Pex_Asset_New.restype = ctypes.POINTER(_Pex_Asset)
-
-    lib.Pex_Asset_Delete.argtypes = [ctypes.POINTER(ctypes.POINTER(_Pex_Asset))]
-    lib.Pex_Asset_Delete.restype = None
-
-    lib.Pex_Asset_GetISRC.argtypes = [ctypes.POINTER(_Pex_Asset)]
-    lib.Pex_Asset_GetISRC.restype = ctypes.c_char_p
-
-    lib.Pex_Asset_GetLabel.argtypes = [ctypes.POINTER(_Pex_Asset)]
-    lib.Pex_Asset_GetLabel.restype = ctypes.c_char_p
-
-    lib.Pex_Asset_GetTitle.argtypes = [ctypes.POINTER(_Pex_Asset)]
-    lib.Pex_Asset_GetTitle.restype = ctypes.c_char_p
-
-    lib.Pex_Asset_GetArtist.argtypes = [ctypes.POINTER(_Pex_Asset)]
-    lib.Pex_Asset_GetArtist.restype = ctypes.c_char_p
-
-    lib.Pex_Asset_GetDuration.argtypes = [ctypes.POINTER(_Pex_Asset)]
-    lib.Pex_Asset_GetDuration.restype = ctypes.c_float
 
     return lib
 
