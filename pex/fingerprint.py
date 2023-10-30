@@ -43,7 +43,7 @@ class _Fingerprinter(object):
         c_ft = _Pex_Buffer.new(_lib)
         c_status = _Pex_Status.new(_lib)
 
-        _lib.Pex_Fingerprint_File_For_Types(path.encode(), c_ft.get(), c_status.get(), int(ft_types))
+        _lib.Pex_Fingerprint_File(path.encode(), c_ft.get(), c_status.get(), int(ft_types))
         Error.check_status(c_status)
 
         data = _lib.Pex_Buffer_GetData(c_ft.get())
@@ -69,7 +69,7 @@ class _Fingerprinter(object):
 
         _lib.Pex_Buffer_Set(c_buf.get(), buf, len(buf))
 
-        _lib.Pex_Fingerprint_Buffer_For_Types(c_buf.get(), c_ft.get(), c_status.get(), int(ft_types))
+        _lib.Pex_Fingerprint_Buffer(c_buf.get(), c_ft.get(), c_status.get(), int(ft_types))
         Error.check_status(c_status)
 
         data = _lib.Pex_Buffer_GetData(c_ft.get())
