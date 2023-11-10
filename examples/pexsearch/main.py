@@ -43,7 +43,7 @@ def main():
     result = future.get()
 
     # Print the result.
-    print(json.dumps(result.to_json(), indent=2))
+    print(json.dumps(result, indent=2))
 
 
 if __name__ == '__main__':
