@@ -11,7 +11,9 @@ MINOR_VERSION = 0
 
 
 class _SafeObject(object):
-    def __init__(self, new, delete, args=[]):
+    def __init__(self, new, delete, args=None):
+        if args is None:
+            args = []
         self._obj = new(*args)
         if not self._obj:
             raise MemoryError("out of memory")
