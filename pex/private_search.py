@@ -84,7 +84,6 @@ class PrivateSearchFuture(object):
         j['lookup_ids'] = self._lookup_ids
         return j
 
-
     @property
     def lookup_ids(self):
         """

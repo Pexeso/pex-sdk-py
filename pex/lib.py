@@ -1,10 +1,8 @@
 # Copyright 2023 Pexeso Inc. All rights reserved.
 
-import os
 import ctypes
 import ctypes.util
 import os
-
 
 MAJOR_VERSION = 4
 MINOR_VERSION = 0
