@@ -288,6 +288,12 @@ def _load_lib():
     ]
     lib.Pex_CheckSearchRequest_AddLookupID.restype = None
 
+    lib.Pex_CheckSearchRequest_SetType.argtypes = [
+        ctypes.POINTER(_Pex_CheckSearchRequest),
+        ctypes.c_int,
+    ]
+    lib.Pex_CheckSearchRequest_SetType.restype = None
+
     # Pex_CheckSearchResult
     lib.Pex_CheckSearchResult_New.argtypes = []
     lib.Pex_CheckSearchResult_New.restype = ctypes.POINTER(

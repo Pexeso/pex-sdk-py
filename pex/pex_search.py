@@ -4,7 +4,7 @@ import ctypes
 import json
 from datetime import datetime
 from collections import namedtuple
-from enum import Enum
+from enum import IntEnum
 
 from pex.lib import (
     _lib,
@@ -21,27 +21,42 @@ from pex.client import _ClientType, _init_client
 from pex.fingerprint import _Fingerprinter
 
 
+class PexSearchType(IntEnum):
+    """
+    PexSearchType can optionally be specified in the PexSearchRequest and will
+    allow to retrieve results that are more relevant to the given use-case.
+    """
+
+    """
+    A type of PexSearch that will return results that will
+    help identify the music in the provided media file.
+    """
+    IDENTIFY_MUSIC = 1
+
+    """
+    FindMatches is a type of PexSearch that will return all assets that
+    matched against the given media file.
+    """
+    FIND_MATCHES = 2
+
+
 class PexSearchRequest(object):
     """
-    Holds all data necessary to perform a pex search. A search can only be
-    performed using a fingerprint, but additional parameters may be supported
-    in the future.
+    Holds all data necessary to perform a pex search.
     """
 
-    def __init__(self, fingerprint):
+    def __init__(self, fingerprint, type=PexSearchType.IDENTIFY_MUSIC):
+        """
+        Constructor.
+
+        :param Fingerprint fingerprint: A fingerprint previously generated from a file or a byte buffer.
+        :param PexSearchType type: A type of the pex search performed
+        """
         self._fingerprint = fingerprint
-
-    @property
-    def fingerprint(self):
-        """
-        A fingerprint generated from a file or a byte buffer.
-
-        :type: Fingerprint
-        """
-        return self._fingerprint
+        self._type = type
 
     def __repr__(self):
-        return "PexSearchRequest(fingerprint=...)"
+        return f"PexSearchRequest(fingerprint=...,type={self._type.name})"
 
 
 class PexSearchFuture(object):
@@ -50,9 +65,10 @@ class PexSearchFuture(object):
     and is used to retrieve a search result.
     """
 
-    def __init__(self, client, lookup_ids):
+    def __init__(self, client, lookup_ids, type):
         self._raw_c_client = client.get()
         self._lookup_ids = lookup_ids
+        self._type = type
 
     def get(self):
         """
@@ -73,6 +89,9 @@ class PexSearchFuture(object):
             _lib.Pex_CheckSearchRequest_AddLookupID(
                 c_req.get(), lookup_id.encode()
             )
+
+        print(self._type)
+        _lib.Pex_CheckSearchRequest_SetType(c_req.get(), self._type)
 
         _lib.Pex_CheckSearch(
             self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
@@ -95,7 +114,7 @@ class PexSearchFuture(object):
         return self._lookup_ids
 
     def __repr__(self):
-        return "PexSearchFuture(lookup_ids={})".format(self._lookup_ids)
+        return f"PexSearchFuture(lookup_ids={self._lookup_ids}, type={self._type.name})"
 
 
 class PexSearchClient(_Fingerprinter):
@@ -121,7 +140,7 @@ class PexSearchClient(_Fingerprinter):
         c_req = _Pex_StartSearchRequest.new(_lib)
         c_res = _Pex_StartSearchResult.new(_lib)
 
-        _lib.Pex_Buffer_Set(c_ft.get(), req.fingerprint._ft, len(req.fingerprint._ft))
+        _lib.Pex_Buffer_Set(c_ft.get(), req._fingerprint._ft, len(req._fingerprint._ft))
 
         _lib.Pex_StartSearchRequest_SetFingerprint(
             c_req.get(), c_ft.get(), c_status.get()
@@ -144,4 +163,4 @@ class PexSearchClient(_Fingerprinter):
         ):
             lookup_ids.append(c_lookup_id.value.decode())
 
-        return PexSearchFuture(self._c_client, lookup_ids)
+        return PexSearchFuture(self._c_client, lookup_ids, req._type)
