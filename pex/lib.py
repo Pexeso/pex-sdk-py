@@ -1,17 +1,17 @@
 # Copyright 2023 Pexeso Inc. All rights reserved.
 
-import os
 import ctypes
 import ctypes.util
 import os
-
 
 MAJOR_VERSION = 4
 MINOR_VERSION = 0
 
 
 class _SafeObject(object):
-    def __init__(self, new, delete, args=[]):
+    def __init__(self, new, delete, args=None):
+        if args is None:
+            args = []
         self._obj = new(*args)
         if not self._obj:
             raise MemoryError("out of memory")
