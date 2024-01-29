@@ -5,7 +5,7 @@ import ctypes.util
 import os
 
 MAJOR_VERSION = 4
-MINOR_VERSION = 0
+MINOR_VERSION = 1
 
 
 class _SafeObject(object):
