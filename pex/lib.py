@@ -5,7 +5,7 @@ import ctypes.util
 import os
 
 MAJOR_VERSION = 4
-MINOR_VERSION = 0
+MINOR_VERSION = 1
 
 
 class _SafeObject(object):
@@ -287,6 +287,12 @@ def _load_lib():
         ctypes.c_char_p,
     ]
     lib.Pex_CheckSearchRequest_AddLookupID.restype = None
+
+    lib.Pex_CheckSearchRequest_SetType.argtypes = [
+        ctypes.POINTER(_Pex_CheckSearchRequest),
+        ctypes.c_int,
+    ]
+    lib.Pex_CheckSearchRequest_SetType.restype = None
 
     # Pex_CheckSearchResult
     lib.Pex_CheckSearchResult_New.argtypes = []
