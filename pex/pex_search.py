@@ -90,7 +90,6 @@ class PexSearchFuture(object):
                 c_req.get(), lookup_id.encode()
             )
 
-        print(self._type)
         _lib.Pex_CheckSearchRequest_SetType(c_req.get(), self._type)
 
         _lib.Pex_CheckSearch(
