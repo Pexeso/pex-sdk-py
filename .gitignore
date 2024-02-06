@@ -1,3 +1,6 @@
 *.pyc
 __pycache__
 /docs/_build
+.idea/
+build/
+pex.egg-info/
