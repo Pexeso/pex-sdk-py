@@ -1,4 +1,4 @@
-[![docs](https://img.shields.io/badge/docs-reference-blue.svg)](https://docs.ae.pex.com/python/)
+[![docs](https://img.shields.io/badge/docs-reference-blue.svg)](https://docs.search.pex.com/)
 [![Language](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 
 # Pex SDK for Python
