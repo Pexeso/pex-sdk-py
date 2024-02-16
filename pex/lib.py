@@ -246,6 +246,12 @@ def _load_lib():
     ]
     lib.Pex_StartSearchRequest_Delete.restype = None
 
+    lib.Pex_StartSearchRequest_SetType.argtypes = [
+        ctypes.POINTER(_Pex_StartSearchRequest),
+        ctypes.c_int,
+    ]
+    lib.Pex_StartSearchRequest_SetType.restype = None
+
     lib.Pex_StartSearchRequest_SetFingerprint.argtypes = [
         ctypes.POINTER(_Pex_StartSearchRequest),
         ctypes.POINTER(_Pex_Buffer),
@@ -287,12 +293,6 @@ def _load_lib():
         ctypes.c_char_p,
     ]
     lib.Pex_CheckSearchRequest_AddLookupID.restype = None
-
-    lib.Pex_CheckSearchRequest_SetType.argtypes = [
-        ctypes.POINTER(_Pex_CheckSearchRequest),
-        ctypes.c_int,
-    ]
-    lib.Pex_CheckSearchRequest_SetType.restype = None
 
     # Pex_CheckSearchResult
     lib.Pex_CheckSearchResult_New.argtypes = []

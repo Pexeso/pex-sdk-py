@@ -65,10 +65,9 @@ class PexSearchFuture(object):
     and is used to retrieve a search result.
     """
 
-    def __init__(self, client, lookup_ids, type):
+    def __init__(self, client, lookup_ids):
         self._raw_c_client = client.get()
         self._lookup_ids = lookup_ids
-        self._type = type
 
     def get(self):
         """
@@ -89,8 +88,6 @@ class PexSearchFuture(object):
             _lib.Pex_CheckSearchRequest_AddLookupID(
                 c_req.get(), lookup_id.encode()
             )
-
-        _lib.Pex_CheckSearchRequest_SetType(c_req.get(), self._type)
 
         _lib.Pex_CheckSearch(
             self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
@@ -113,7 +110,7 @@ class PexSearchFuture(object):
         return self._lookup_ids
 
     def __repr__(self):
-        return f"PexSearchFuture(lookup_ids={self._lookup_ids}, type={self._type.name})"
+        return f"PexSearchFuture(lookup_ids={self._lookup_ids})"
 
 
 class PexSearchClient(_Fingerprinter):
@@ -141,6 +138,7 @@ class PexSearchClient(_Fingerprinter):
 
         _lib.Pex_Buffer_Set(c_ft.get(), req._fingerprint._ft, len(req._fingerprint._ft))
 
+        _lib.Pex_StartSearchRequest_SetType(c_req.get(), req._type)
         _lib.Pex_StartSearchRequest_SetFingerprint(
             c_req.get(), c_ft.get(), c_status.get()
         )
@@ -162,4 +160,4 @@ class PexSearchClient(_Fingerprinter):
         ):
             lookup_ids.append(c_lookup_id.value.decode())
 
-        return PexSearchFuture(self._c_client, lookup_ids, req._type)
+        return PexSearchFuture(self._c_client, lookup_ids)
