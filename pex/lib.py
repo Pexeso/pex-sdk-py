@@ -104,7 +104,17 @@ def _load_lib():
         # Useful for generating documentation.
         return ctypes.CDLL(None)
 
-    name = ctypes.util.find_library("pexsdk")
+    # `find_library` is rather impractical on Windows for two reasons
+    # 1) it does not search the same paths that Windows's dynamic linking does
+    # 2) Windows does not have a good central location for installing DLLs like
+    #    linux does. (This is advantageous in preventing dll hell, but
+    #    causes issues with testing non-packaged builds).
+    # Thus we allow it to be overridden through env var (on all platforms).
+    if 'PEX_SDK_UPDATER_LIB' in os.environ:
+        name = os.environ['PEX_SDK_UPDATER_LIB']
+    else:
+        name = ctypes.util.find_library("pexsdk")
+
     if name is None:
         raise RuntimeError("failed to find native library")
 
