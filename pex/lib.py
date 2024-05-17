@@ -329,6 +329,15 @@ def _load_lib():
     ]
     lib.Pex_Ingest.restype = None
 
+    # Pex_Archive
+    lib.Pex_Archive.argtypes = [
+        ctypes.POINTER(_Pex_Client),
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.POINTER(_Pex_Status),
+    ]
+    lib.Pex_Archive.restype = None
+
     return lib
 
 

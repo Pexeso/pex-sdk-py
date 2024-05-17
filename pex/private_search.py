@@ -158,3 +158,13 @@ class PrivateSearchClient(_Fingerprinter):
             self._c_client.get(), provided_id.encode(), c_ft.get(), c_status.get()
         )
         Error.check_status(c_status)
+
+    def archive(self, provided_id, ft_types=FingerprintType.ALL):
+        lock = _Pex_Lock.new(_lib)
+
+        c_status = _Pex_Status.new(_lib)
+
+        _lib.Pex_Archive(
+            self._c_client.get(), provided_id.encode(), int(ft_types), c_status.get()
+        )
+        Error.check_status(c_status)
