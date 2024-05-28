@@ -18,7 +18,7 @@ from pex.lib import (
 )
 from pex.errors import Error
 from pex.client import _ClientType, _init_client
-from pex.fingerprint import _Fingerprinter
+from pex.fingerprint import _Fingerprinter, FingerprintType
 
 
 class PrivateSearchRequest(object):
