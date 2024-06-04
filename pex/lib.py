@@ -5,7 +5,7 @@ import ctypes.util
 import os
 
 MAJOR_VERSION = 4
-MINOR_VERSION = 1
+MINOR_VERSION = 3
 
 
 class _SafeObject(object):
@@ -328,6 +328,15 @@ def _load_lib():
         ctypes.POINTER(_Pex_Status),
     ]
     lib.Pex_Ingest.restype = None
+
+    # Pex_Archive
+    lib.Pex_Archive.argtypes = [
+        ctypes.POINTER(_Pex_Client),
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.POINTER(_Pex_Status),
+    ]
+    lib.Pex_Archive.restype = None
 
     return lib
 
