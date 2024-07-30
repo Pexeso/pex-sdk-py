@@ -203,6 +203,24 @@ def _load_lib():
     ]
     lib.Pex_Fingerprint_Buffer.restype = None
 
+    lib.Pex_FingerprintFile.argtypes = [
+        ctypes.POINTER(_Pex_Client),
+        ctypes.c_char_p,
+        ctypes.POINTER(_Pex_Buffer),
+        ctypes.POINTER(_Pex_Status),
+        ctypes.c_int,
+    ]
+    lib.Pex_FingerprintFile.restype = None
+
+    lib.Pex_FingerprintBuffer.argtypes = [
+        ctypes.POINTER(_Pex_Client),
+        ctypes.POINTER(_Pex_Buffer),
+        ctypes.POINTER(_Pex_Buffer),
+        ctypes.POINTER(_Pex_Status),
+        ctypes.c_int,
+    ]
+    lib.Pex_FingerprintBuffer.restype = None
+
     # Pex_Client
     lib.Pex_Client_New.argtypes = []
     lib.Pex_Client_New.restype = ctypes.POINTER(_Pex_Client)

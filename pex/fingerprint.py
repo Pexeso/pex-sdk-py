@@ -29,6 +29,9 @@ class Fingerprint(object):
 
 
 class _Fingerprinter(object):
+    def __init(self, c_client):
+        self._c_client = c_client
+
     def fingerprint_file(self, path, ft_types=FingerprintType.ALL):
         """
         Generate a fingerprint from a file stored on a disk. The parameter to
