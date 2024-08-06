@@ -15,6 +15,8 @@ from pex.lib import (
     _Pex_StartSearchResult,
     _Pex_CheckSearchRequest,
     _Pex_CheckSearchResult,
+    _Pex_ListRequest,
+    _Pex_ListResult,
 )
 from pex.errors import Error
 from pex.client import _ClientType, _init_client
@@ -46,7 +48,7 @@ class PrivateSearchRequest(object):
 
 class PrivateSearchFuture(object):
     """
-    This object is returned by the :meth:`PrivateSearch.start` method
+    This object is returned by the :meth:`PrivateSearchClient.start` method
     and is used to retrieve a search result.
     """
 
@@ -96,6 +98,81 @@ class PrivateSearchFuture(object):
 
     def __repr__(self):
         return "PrivateSearchFuture(lookup_ids={})".format(self._lookup_ids)
+
+
+class ListEntriesRequest(object):
+    """
+    ListEntriesRequest must be passed to the :meth:`PrivateSearchClient.list_entries`
+    method when listing all the ingested assets in the catalog. It allows the
+    user to specify some options that will narrow the listing down which is
+    important especially for large catalogs.
+    """
+
+    def __init__(self, after="", limit=0):
+        self._after = after
+        self._limit = limit
+
+    def __repr__(self):
+        return "ListEntriesRequest(after={}, limit={})".format(self._after, self._limit)
+
+
+class Lister(object):
+    """
+    Lister is an object returned by the List() functions when listing all the
+    ingested assets. It represents a sort of paginator that will allow the user
+    to retrieve the entries in smaller chunks, which is important if the catalog
+    contains too many entries.
+    """
+
+    def __init__(self, c_client, after, limit):
+        self._c_client = c_client
+        self._end_cursor = after
+        self._limit = limit
+        self._has_next_page = True
+
+    @property
+    def end_cursor(self):
+        """
+        A cursor that can be later passed when initializing :class:`ListEntriesRequest`.
+
+        :type: str
+        """
+        return self._end_cursor
+
+    @property
+    def has_next_page(self):
+        """
+        This signifies whether there's a next page to be retrieved.
+
+        :type: bool
+        """
+        return self._has_next_page
+
+    def list(self):
+        """
+        This method grabs the next "page" and returns entries.
+
+        :raise: :class:`Error` if the request couldn't complete, e.g.
+                because of network issues.
+        :rtype: list
+        """
+        lock = _Pex_Lock.new(_lib)
+
+        c_status = _Pex_Status.new(_lib)
+        c_req = _Pex_ListRequest.new(_lib)
+        c_res = _Pex_ListResult.new(_lib)
+
+        _lib.Pex_ListRequest_SetAfter(c_req.get(), self._end_cursor.encode())
+        _lib.Pex_ListRequest_SetLimit(c_req.get(), self._limit)
+
+        _lib.Pex_List(self._c_client.get(), c_req.get(), c_res.get(), c_status.get())
+        Error.check_status(c_status)
+
+        res = _lib.Pex_ListResult_GetJSON(c_res.get())
+        j = json.loads(res)
+        self._end_cursor = j['end_cursor']
+        self._has_next_page = j['has_next_page']
+        return j['entries']
 
 
 class PrivateSearchClient(_Fingerprinter):
@@ -168,3 +245,10 @@ class PrivateSearchClient(_Fingerprinter):
             self._c_client.get(), provided_id.encode(), int(ft_types), c_status.get()
         )
         Error.check_status(c_status)
+
+    def list_entries(self, req):
+        """
+        This method initiates listing of the catalog and returns a Lister that can
+        be used to retrieve the entries.
+        """
+        return Lister(self._c_client, req._after, req._limit)
