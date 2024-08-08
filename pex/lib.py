@@ -98,6 +98,24 @@ class _Pex_CheckSearchResult(ctypes.Structure):
         )
 
 
+class _Pex_ListRequest(ctypes.Structure):
+    @staticmethod
+    def new(lib):
+        return _SafeObject(
+            lib.Pex_ListRequest_New,
+            lib.Pex_ListRequest_Delete,
+        )
+
+
+class _Pex_ListResult(ctypes.Structure):
+    @staticmethod
+    def new(lib):
+        return _SafeObject(
+            lib.Pex_ListResult_New,
+            lib.Pex_ListResult_Delete
+        )
+
+
 def _load_lib():
     if os.getenv("PEX_SDK_NO_CORE_LIB") is not None:
         # Defining PEX_SDK_NO_CORE_LIB makes this wrapper module import-able even without the shared library.
@@ -338,6 +356,45 @@ def _load_lib():
     ]
     lib.Pex_CheckSearchResult_GetJSON.restype = ctypes.c_char_p
 
+    # Pex_ListRequest
+    lib.Pex_ListRequest_New.argtypes = []
+    lib.Pex_ListRequest_New.restype = ctypes.POINTER(
+        _Pex_ListRequest
+    )
+
+    lib.Pex_ListRequest_Delete.argtypes = [
+        ctypes.POINTER(ctypes.POINTER(_Pex_ListRequest))
+    ]
+    lib.Pex_ListRequest_Delete.restype = None
+
+    lib.Pex_ListRequest_SetAfter.argtypes = [
+        ctypes.POINTER(_Pex_ListRequest),
+        ctypes.c_char_p,
+    ]
+    lib.Pex_ListRequest_SetAfter.restype = None
+
+    lib.Pex_ListRequest_SetLimit.argtypes = [
+        ctypes.POINTER(_Pex_ListRequest),
+        ctypes.c_int,
+    ]
+    lib.Pex_ListRequest_SetLimit.restype = None
+
+    # Pex_ListResult
+    lib.Pex_ListResult_New.argtypes = []
+    lib.Pex_ListResult_New.restype = ctypes.POINTER(
+        _Pex_ListResult
+    )
+
+    lib.Pex_ListResult_Delete.argtypes = [
+        ctypes.POINTER(ctypes.POINTER(_Pex_ListResult))
+    ]
+    lib.Pex_ListResult_Delete.restype = None
+
+    lib.Pex_ListResult_GetJSON.argtypes = [
+        ctypes.POINTER(_Pex_ListResult),
+    ]
+    lib.Pex_ListResult_GetJSON.restype = ctypes.c_char_p
+
     # Pex_Ingest
     lib.Pex_Ingest.argtypes = [
         ctypes.POINTER(_Pex_Client),
@@ -355,6 +412,15 @@ def _load_lib():
         ctypes.POINTER(_Pex_Status),
     ]
     lib.Pex_Archive.restype = None
+
+    # Pex_List
+    lib.Pex_List.argtypes = [
+        ctypes.POINTER(_Pex_Client),
+        ctypes.POINTER(_Pex_ListRequest),
+        ctypes.POINTER(_Pex_ListResult),
+        ctypes.POINTER(_Pex_Status),
+    ]
+    lib.Pex_List.restype = None
 
     return lib
 
