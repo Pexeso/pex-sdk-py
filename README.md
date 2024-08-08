@@ -12,7 +12,7 @@ You can install the Python language bindings like this:
 
     python3 -m venv env
     . env/bin/activate
-    pip install git+https://github.com/Pexeso/pex-sdk-py.git@v4.1.2
+    pip install git+https://github.com/Pexeso/pex-sdk-py.git@v4.4.0
 
 
 
