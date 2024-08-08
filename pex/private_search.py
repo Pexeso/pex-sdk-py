@@ -178,6 +178,7 @@ class Lister(object):
 class PrivateSearchClient(_Fingerprinter):
     def __init__(self, client_id, client_secret):
         self._c_client = _init_client(_ClientType.PRIVATE_SEARCH, client_id, client_secret)
+        super().__init__(self._c_client)
 
     def start_search(self, req):
         """
