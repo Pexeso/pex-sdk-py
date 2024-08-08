@@ -29,6 +29,9 @@ class Fingerprint(object):
 
 
 class _Fingerprinter(object):
+    def __init(self, c_client):
+        self._c_client = c_client
+
     def fingerprint_file(self, path, ft_types=FingerprintType.ALL):
         """
         Generate a fingerprint from a file stored on a disk. The parameter to
@@ -43,7 +46,8 @@ class _Fingerprinter(object):
         c_ft = _Pex_Buffer.new(_lib)
         c_status = _Pex_Status.new(_lib)
 
-        _lib.Pex_Fingerprint_File(path.encode(), c_ft.get(), c_status.get(), int(ft_types))
+        _lib.Pex_FingerprintFile(self._c_client.get(), path.encode(), c_ft.get(),
+                                 c_status.get(), int(ft_types))
         Error.check_status(c_status)
 
         data = _lib.Pex_Buffer_GetData(c_ft.get())
@@ -69,7 +73,8 @@ class _Fingerprinter(object):
 
         _lib.Pex_Buffer_Set(c_buf.get(), buf, len(buf))
 
-        _lib.Pex_Fingerprint_Buffer(c_buf.get(), c_ft.get(), c_status.get(), int(ft_types))
+        _lib.Pex_FingerprintBuffer(self._c_client.get(), c_buf.get(),
+                                   c_ft.get(), c_status.get(), int(ft_types))
         Error.check_status(c_status)
 
         data = _lib.Pex_Buffer_GetData(c_ft.get())
