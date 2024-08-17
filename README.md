@@ -1,9 +1,9 @@
-[![docs](https://img.shields.io/badge/docs-reference-blue.svg)](https://docs.search.pex.com/)
+[![docs](https://img.shields.io/badge/docs-reference-blue.svg)](https://docs.pex.com/)
 [![Language](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 
 # Pex SDK for Python
 
-Python bindings for the [Pex SDK](https://docs.search.pex.com).
+Python bindings for the [Pex SDK](https://docs.pex.com).
 
 ### Installation
 
