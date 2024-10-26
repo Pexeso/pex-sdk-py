@@ -10,17 +10,38 @@ MINOR_VERSION = 4
 
 class _SafeObject(object):
     def __init__(self, new, delete, args=None):
-        if args is None:
-            args = []
-        self._obj = new(*args)
-        if not self._obj:
-            raise MemoryError("out of memory")
+        self._new = new
         self._delete = delete
+        self._args = args
+        self._obj = None
 
     def __del__(self):
+        self.free()
+
+    def __enter__(self):
+        self.init()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.free()
+
+    def init(self):
+        args = []
+        if self._args is not None:
+            args = self._args
+        self._obj = self._new(*args)
+        if not self._obj:
+            raise MemoryError("out of memory")
+
+    def free(self):
+        if not self._obj:
+            return
         self._delete(ctypes.byref(self._obj))
+        self._obj = None
 
     def get(self):
+        if not self._obj:
+            raise RuntimeError("use object in a with statement")
         return self._obj
 
 
@@ -31,9 +52,11 @@ class _Pex_Lock(object):
 
     def __init__(self, lib):
         self._lib = lib
+
+    def __enter__(self):
         self._lib.Pex_Lock()
 
-    def __del__(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         self._lib.Pex_Unlock()
 
 

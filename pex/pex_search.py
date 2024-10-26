@@ -77,27 +77,26 @@ class PexSearchFuture(object):
                 because of network issues.
         :rtype: dict
         """
+        with (
+            _Pex_Lock.new(_lib) as c_lock,
+            _Pex_Status.new(_lib) as c_status,
+            _Pex_CheckSearchRequest.new(_lib) as c_req,
+            _Pex_CheckSearchResult.new(_lib) as c_res,
+        ):
+            for lookup_id in self._lookup_ids:
+                _lib.Pex_CheckSearchRequest_AddLookupID(
+                    c_req.get(), lookup_id.encode()
+                )
 
-        lock = _Pex_Lock.new(_lib)
-
-        c_status = _Pex_Status.new(_lib)
-        c_req = _Pex_CheckSearchRequest.new(_lib)
-        c_res = _Pex_CheckSearchResult.new(_lib)
-
-        for lookup_id in self._lookup_ids:
-            _lib.Pex_CheckSearchRequest_AddLookupID(
-                c_req.get(), lookup_id.encode()
+            _lib.Pex_CheckSearch(
+                self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
             )
+            Error.check_status(c_status)
 
-        _lib.Pex_CheckSearch(
-            self._raw_c_client, c_req.get(), c_res.get(), c_status.get()
-        )
-        Error.check_status(c_status)
-
-        res = _lib.Pex_CheckSearchResult_GetJSON(c_res.get())
-        j = json.loads(res)
-        j['lookup_ids'] = self._lookup_ids
-        return j
+            res = _lib.Pex_CheckSearchResult_GetJSON(c_res.get())
+            j = json.loads(res)
+            j['lookup_ids'] = self._lookup_ids
+            return j
 
     @property
     def lookup_ids(self):
@@ -129,36 +128,35 @@ class PexSearchClient(_Fingerprinter):
                 because of network issues.
         :rtype: PexSearchFuture
         """
-
-        lock = _Pex_Lock.new(_lib)
-
-        c_status = _Pex_Status.new(_lib)
-        c_ft = _Pex_Buffer.new(_lib)
-        c_req = _Pex_StartSearchRequest.new(_lib)
-        c_res = _Pex_StartSearchResult.new(_lib)
-
-        _lib.Pex_Buffer_Set(c_ft.get(), req._fingerprint._ft, len(req._fingerprint._ft))
-
-        _lib.Pex_StartSearchRequest_SetType(c_req.get(), req._type)
-        _lib.Pex_StartSearchRequest_SetFingerprint(
-            c_req.get(), c_ft.get(), c_status.get()
-        )
-        Error.check_status(c_status)
-
-        _lib.Pex_StartSearch(
-            self._c_client.get(), c_req.get(), c_res.get(), c_status.get()
-        )
-        Error.check_status(c_status)
-
-        lookup_ids = list()
-        c_lookup_id_pos = ctypes.c_size_t(0)
-        c_lookup_id = ctypes.c_char_p()
-
-        while _lib.Pex_StartSearchResult_NextLookupID(
-            c_res.get(),
-            ctypes.byref(c_lookup_id_pos),
-            ctypes.byref(c_lookup_id)
+        with (
+            _Pex_Lock.new(_lib) as c_lock,
+            _Pex_Status.new(_lib) as c_status,
+            _Pex_Buffer.new(_lib) as c_ft,
+            _Pex_StartSearchRequest.new(_lib) as c_req,
+            _Pex_StartSearchResult.new(_lib) as c_res,
         ):
-            lookup_ids.append(c_lookup_id.value.decode())
+            _lib.Pex_Buffer_Set(c_ft.get(), req._fingerprint._ft, len(req._fingerprint._ft))
 
-        return PexSearchFuture(self._c_client, lookup_ids)
+            _lib.Pex_StartSearchRequest_SetType(c_req.get(), req._type)
+            _lib.Pex_StartSearchRequest_SetFingerprint(
+                c_req.get(), c_ft.get(), c_status.get()
+            )
+            Error.check_status(c_status)
+
+            _lib.Pex_StartSearch(
+                self._c_client.get(), c_req.get(), c_res.get(), c_status.get()
+            )
+            Error.check_status(c_status)
+
+            lookup_ids = list()
+            c_lookup_id_pos = ctypes.c_size_t(0)
+            c_lookup_id = ctypes.c_char_p()
+
+            while _lib.Pex_StartSearchResult_NextLookupID(
+                c_res.get(),
+                ctypes.byref(c_lookup_id_pos),
+                ctypes.byref(c_lookup_id)
+            ):
+                lookup_ids.append(c_lookup_id.value.decode())
+
+            return PexSearchFuture(self._c_client, lookup_ids)
