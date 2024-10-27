@@ -41,19 +41,19 @@ class _Fingerprinter(object):
         :raise: :class:`Error` if the media file is missing or invalid.
         :rtype: Fingerprint
         """
-        lk = _Pex_Lock.new(_lib)
+        with (
+            _Pex_Lock.new(_lib) as c_lock,
+            _Pex_Buffer.new(_lib) as c_ft,
+            _Pex_Status.new(_lib) as c_status,
+        ):
+            _lib.Pex_FingerprintFile(self._c_client.get(), path.encode(), c_ft.get(),
+                                     c_status.get(), int(ft_types))
+            Error.check_status(c_status)
 
-        c_ft = _Pex_Buffer.new(_lib)
-        c_status = _Pex_Status.new(_lib)
-
-        _lib.Pex_FingerprintFile(self._c_client.get(), path.encode(), c_ft.get(),
-                                 c_status.get(), int(ft_types))
-        Error.check_status(c_status)
-
-        data = _lib.Pex_Buffer_GetData(c_ft.get())
-        size = _lib.Pex_Buffer_GetSize(c_ft.get())
-        ft = ctypes.string_at(data, size)
-        return Fingerprint(ft)
+            data = _lib.Pex_Buffer_GetData(c_ft.get())
+            size = _lib.Pex_Buffer_GetSize(c_ft.get())
+            ft = ctypes.string_at(data, size)
+            return Fingerprint(ft)
 
     def fingerprint_buffer(self, buf, ft_types=FingerprintType.ALL):
         """
@@ -64,21 +64,19 @@ class _Fingerprinter(object):
         :raise: :class:`Error` if the buffer holds invalid data.
         :rtype: Fingerprint
         """
+        with (
+            _Pex_Lock.new(_lib) as c_lock,
+            _Pex_Buffer.new(_lib) as c_ft,
+            _Pex_Buffer.new(_lib) as c_buf,
+            _Pex_Status.new(_lib) as c_status,
+        ):
+            _lib.Pex_Buffer_Set(c_buf.get(), buf, len(buf))
 
-        lk = _Pex_Lock.new(_lib)
+            _lib.Pex_FingerprintBuffer(self._c_client.get(), c_buf.get(),
+                                       c_ft.get(), c_status.get(), int(ft_types))
+            Error.check_status(c_status)
 
-        c_status = _Pex_Status.new(_lib)
-        c_buf = _Pex_Buffer.new(_lib)
-        c_ft = _Pex_Buffer.new(_lib)
-
-        _lib.Pex_Buffer_Set(c_buf.get(), buf, len(buf))
-
-        _lib.Pex_FingerprintBuffer(self._c_client.get(), c_buf.get(),
-                                   c_ft.get(), c_status.get(), int(ft_types))
-        Error.check_status(c_status)
-
-        data = _lib.Pex_Buffer_GetData(c_ft.get())
-        size = _lib.Pex_Buffer_GetSize(c_ft.get())
-        ft = ctypes.string_at(data, size)
-        return Fingerprint(ft)
-
+            data = _lib.Pex_Buffer_GetData(c_ft.get())
+            size = _lib.Pex_Buffer_GetSize(c_ft.get())
+            ft = ctypes.string_at(data, size)
+            return Fingerprint(ft)
