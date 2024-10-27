@@ -22,6 +22,7 @@ class Code(Enum):
     CONNECTION_ERROR = 9
     LOOKUP_FAILED = 10
     LOOKUP_TIMED_OUT = 11
+    RESOURCE_EXHAUSTED = 12
 
 
 class Error(RuntimeError):
@@ -44,12 +45,14 @@ class Error(RuntimeError):
     def from_status(c_status):
         code = _lib.Pex_Status_GetCode(c_status.get())
         message = _lib.Pex_Status_GetMessage(c_status.get())
-        return Error(Code(code), message.decode())
+        is_retryable = _lib.Pex_Status_IsRetryable(c_status.get())
+        return Error(Code(code), message.decode(), is_retryable)
 
-    def __init__(self, code, message):
+    def __init__(self, code, message, is_retryable=False):
         super().__init__("{}: {}".format(code, message))
         self._code = Code(code)
         self._message = message
+        self._is_retryable = is_retryable
 
     @property
     def code(self):
@@ -65,3 +68,10 @@ class Error(RuntimeError):
         Human readable error message. Mostly useful for logging and debugging.
         """
         return self._message
+
+    @property
+    def is_retryable(self):
+        """
+        Returns True if retrying the operation might eventually succeed.
+        """
+        return self._is_retryable

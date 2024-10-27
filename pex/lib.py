@@ -5,7 +5,7 @@ import ctypes.util
 import os
 
 MAJOR_VERSION = 4
-MINOR_VERSION = 4
+MINOR_VERSION = 5
 
 
 class _SafeObject(object):
@@ -206,6 +206,9 @@ def _load_lib():
 
     lib.Pex_Status_GetMessage.argtypes = [ctypes.POINTER(_Pex_Status)]
     lib.Pex_Status_GetMessage.restype = ctypes.c_char_p
+
+    lib.Pex_Status_IsRetryable.argtypes = [ctypes.POINTER(_Pex_Status)]
+    lib.Pex_Status_IsRetryable.restype = ctypes.c_bool
 
     # Pex_Buffer
     lib.Pex_Buffer_New.argtypes = []
