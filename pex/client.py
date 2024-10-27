@@ -4,7 +4,7 @@ import ctypes
 from enum import IntEnum
 
 from .lib import _lib, _Pex_Client, _Pex_Status, _Pex_Lock
-from pex.errors import Error
+from pex.errors import Error, Code
 
 
 class _ClientType(IntEnum):
@@ -22,13 +22,16 @@ def _init_client(client_type, client_id, client_secret):
                   c_status_message, c_status_message_size)
     Error.check(c_status_code.value, c_status_message.value.decode())
 
-    lock = _Pex_Lock.new(_lib)
+    with (
+        _Pex_Lock.new(_lib) as c_lock,
+        _Pex_Status.new(_lib) as c_status,
+    ):
+        c_client = _Pex_Client.new(_lib)
+        c_client.init()
 
-    c_status = _Pex_Status.new(_lib)
-    c_client = _Pex_Client.new(_lib)
-
-    _lib.Pex_Client_Init(c_client.get(), client_type.value, client_id.encode(),
-                         client_secret.encode(), c_status.get())
-    Error.check_status(c_status)
-    # TODO: if this raises, run Pex_Cleanup
-    return c_client
+        _lib.Pex_Client_Init(c_client.get(), client_type.value, client_id.encode(),
+                             client_secret.encode(), c_status.get())
+        status = Error.from_status(c_status)
+        if status.code != Code.OK:
+            raise status
+        return c_client
