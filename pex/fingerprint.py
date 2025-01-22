@@ -14,7 +14,8 @@ class FingerprintType(IntEnum):
     VIDEO = 1
     AUDIO = 2
     MELODY = 4
-    ALL = VIDEO | AUDIO | MELODY
+    PHONETIC = 8
+    ALL = AUDIO | MELODY | PHONETIC
 
 
 class Fingerprint(object):
