@@ -15,6 +15,5 @@ You can find instruction on how to install the Python bindings on `this page </p
    fingerprinting
    error_handling
    client
-   mockserver
    metadata_search
    license_search
