@@ -11,10 +11,12 @@ class FingerprintType(IntEnum):
     """
     FingerprintType is a bit flag used to specify a subset of fingerprint types.
     """
+
     VIDEO = 1
     AUDIO = 2
     MELODY = 4
     PHONETIC = 8
+    CLASS = 16
     ALL = AUDIO | MELODY | PHONETIC
 
 
@@ -47,8 +49,13 @@ class _Fingerprinter(object):
             _Pex_Buffer.new(_lib) as c_ft,
             _Pex_Status.new(_lib) as c_status,
         ):
-            _lib.Pex_FingerprintFile(self._c_client.get(), path.encode(), c_ft.get(),
-                                     c_status.get(), int(ft_types))
+            _lib.Pex_FingerprintFile(
+                self._c_client.get(),
+                path.encode(),
+                c_ft.get(),
+                c_status.get(),
+                int(ft_types),
+            )
             Error.check_status(c_status)
 
             data = _lib.Pex_Buffer_GetData(c_ft.get())
@@ -73,8 +80,13 @@ class _Fingerprinter(object):
         ):
             _lib.Pex_Buffer_Set(c_buf.get(), buf, len(buf))
 
-            _lib.Pex_FingerprintBuffer(self._c_client.get(), c_buf.get(),
-                                       c_ft.get(), c_status.get(), int(ft_types))
+            _lib.Pex_FingerprintBuffer(
+                self._c_client.get(),
+                c_buf.get(),
+                c_ft.get(),
+                c_status.get(),
+                int(ft_types),
+            )
             Error.check_status(c_status)
 
             data = _lib.Pex_Buffer_GetData(c_ft.get())
