@@ -4,4 +4,3 @@ from pex.fingerprint import *
 from pex.private_search import *
 from pex.pex_search import *
 from pex.errors import *
-from pex.mockserver import *

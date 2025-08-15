@@ -281,14 +281,6 @@ def _load_lib():
     ]
     lib.Pex_Client_Init.restype = None
 
-    # Pex_Mockserver
-    lib.Pex_Mockserver_InitClient.argtypes = [
-        ctypes.POINTER(_Pex_Client),
-        ctypes.c_char_p,
-        ctypes.POINTER(_Pex_Status),
-    ]
-    lib.Pex_Mockserver_InitClient.restype = None
-
     # Pex_StartSearch
     lib.Pex_StartSearch.argtypes = [
         ctypes.POINTER(_Pex_Client),
