@@ -16,7 +16,7 @@ class FingerprintType(IntEnum):
     AUDIO = 2
     MELODY = 4
     PHONETIC = 8
-    CLASS = 16
+    CLASSIFICATION = 16
     ALL = AUDIO | MELODY | PHONETIC
 
 
