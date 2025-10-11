@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pex",
-    version="4.6.1",
+    version="4.7.0",
     author="Pexeso Inc.",
     author_email="info@pex.com",
     url="https://github.com/Pexeso/pex-sdk-py",
