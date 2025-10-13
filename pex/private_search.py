@@ -262,6 +262,5 @@ class PrivateSearchClient(_Fingerprinter):
             Error.check_status(c_status)
 
             data = _lib.Pex_Buffer_GetData(c_json.get())
-            size = _lib.Pex_Buffer_GetSize(c_json.get())
-            res = ctypes.string_at(data, size)
+            res = ctypes.string_at(data)
             return json.loads(res)
