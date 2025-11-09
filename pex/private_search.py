@@ -251,3 +251,16 @@ class PrivateSearchClient(_Fingerprinter):
         be used to retrieve the entries.
         """
         return Lister(self._c_client, req._after, req._limit)
+    
+    def get_entry(self, provided_id):
+        with (
+            _Pex_Lock.new(_lib) as c_lock,
+            _Pex_Status.new(_lib) as c_status,
+            _Pex_Buffer.new(_lib) as c_json,
+        ):
+            _lib.Pex_Get(self._c_client.get(), provided_id.encode(), c_json.get(), c_status.get())
+            Error.check_status(c_status)
+
+            data = _lib.Pex_Buffer_GetData(c_json.get())
+            res = ctypes.string_at(data)
+            return json.loads(res)

@@ -5,7 +5,7 @@ import ctypes.util
 import os
 
 MAJOR_VERSION = 4
-MINOR_VERSION = 5
+MINOR_VERSION = 6
 
 
 class _SafeObject(object):
@@ -98,8 +98,7 @@ class _Pex_StartSearchResult(ctypes.Structure):
     @staticmethod
     def new(lib):
         return _SafeObject(
-            lib.Pex_StartSearchResult_New,
-            lib.Pex_StartSearchResult_Delete
+            lib.Pex_StartSearchResult_New, lib.Pex_StartSearchResult_Delete
         )
 
 
@@ -116,8 +115,7 @@ class _Pex_CheckSearchResult(ctypes.Structure):
     @staticmethod
     def new(lib):
         return _SafeObject(
-            lib.Pex_CheckSearchResult_New,
-            lib.Pex_CheckSearchResult_Delete
+            lib.Pex_CheckSearchResult_New, lib.Pex_CheckSearchResult_Delete
         )
 
 
@@ -133,10 +131,7 @@ class _Pex_ListRequest(ctypes.Structure):
 class _Pex_ListResult(ctypes.Structure):
     @staticmethod
     def new(lib):
-        return _SafeObject(
-            lib.Pex_ListResult_New,
-            lib.Pex_ListResult_Delete
-        )
+        return _SafeObject(lib.Pex_ListResult_New, lib.Pex_ListResult_Delete)
 
 
 def _load_lib():
@@ -151,8 +146,8 @@ def _load_lib():
     #    linux does. (This is advantageous in preventing dll hell, but
     #    causes issues with testing non-packaged builds).
     # Thus we allow it to be overridden through env var (on all platforms).
-    if 'PEX_SDK_UPDATER_LIB' in os.environ:
-        name = os.environ['PEX_SDK_UPDATER_LIB']
+    if "PEX_SDK_UPDATER_LIB" in os.environ:
+        name = os.environ["PEX_SDK_UPDATER_LIB"]
     else:
         name = ctypes.util.find_library("pexsdk")
 
@@ -301,9 +296,7 @@ def _load_lib():
 
     # Pex_StartSearchRequest
     lib.Pex_StartSearchRequest_New.argtypes = []
-    lib.Pex_StartSearchRequest_New.restype = ctypes.POINTER(
-        _Pex_StartSearchRequest
-    )
+    lib.Pex_StartSearchRequest_New.restype = ctypes.POINTER(_Pex_StartSearchRequest)
 
     lib.Pex_StartSearchRequest_Delete.argtypes = [
         ctypes.POINTER(ctypes.POINTER(_Pex_StartSearchRequest))
@@ -325,9 +318,7 @@ def _load_lib():
 
     # Pex_StartSearchResult
     lib.Pex_StartSearchResult_New.argtypes = []
-    lib.Pex_StartSearchResult_New.restype = ctypes.POINTER(
-        _Pex_StartSearchResult
-    )
+    lib.Pex_StartSearchResult_New.restype = ctypes.POINTER(_Pex_StartSearchResult)
 
     lib.Pex_StartSearchResult_Delete.argtypes = [
         ctypes.POINTER(ctypes.POINTER(_Pex_StartSearchResult))
@@ -343,9 +334,7 @@ def _load_lib():
 
     # Pex_CheckSearchRequest
     lib.Pex_CheckSearchRequest_New.argtypes = []
-    lib.Pex_CheckSearchRequest_New.restype = ctypes.POINTER(
-        _Pex_CheckSearchRequest
-    )
+    lib.Pex_CheckSearchRequest_New.restype = ctypes.POINTER(_Pex_CheckSearchRequest)
 
     lib.Pex_CheckSearchRequest_Delete.argtypes = [
         ctypes.POINTER(ctypes.POINTER(_Pex_CheckSearchRequest))
@@ -360,9 +349,7 @@ def _load_lib():
 
     # Pex_CheckSearchResult
     lib.Pex_CheckSearchResult_New.argtypes = []
-    lib.Pex_CheckSearchResult_New.restype = ctypes.POINTER(
-        _Pex_CheckSearchResult
-    )
+    lib.Pex_CheckSearchResult_New.restype = ctypes.POINTER(_Pex_CheckSearchResult)
 
     lib.Pex_CheckSearchResult_Delete.argtypes = [
         ctypes.POINTER(ctypes.POINTER(_Pex_CheckSearchResult))
@@ -376,9 +363,7 @@ def _load_lib():
 
     # Pex_ListRequest
     lib.Pex_ListRequest_New.argtypes = []
-    lib.Pex_ListRequest_New.restype = ctypes.POINTER(
-        _Pex_ListRequest
-    )
+    lib.Pex_ListRequest_New.restype = ctypes.POINTER(_Pex_ListRequest)
 
     lib.Pex_ListRequest_Delete.argtypes = [
         ctypes.POINTER(ctypes.POINTER(_Pex_ListRequest))
@@ -399,9 +384,7 @@ def _load_lib():
 
     # Pex_ListResult
     lib.Pex_ListResult_New.argtypes = []
-    lib.Pex_ListResult_New.restype = ctypes.POINTER(
-        _Pex_ListResult
-    )
+    lib.Pex_ListResult_New.restype = ctypes.POINTER(_Pex_ListResult)
 
     lib.Pex_ListResult_Delete.argtypes = [
         ctypes.POINTER(ctypes.POINTER(_Pex_ListResult))
@@ -439,6 +422,15 @@ def _load_lib():
         ctypes.POINTER(_Pex_Status),
     ]
     lib.Pex_List.restype = None
+
+    # Pex_Get
+    lib.Pex_Get.argtypes = [
+        ctypes.POINTER(_Pex_Client),
+        ctypes.c_char_p,
+        ctypes.POINTER(_Pex_Buffer),
+        ctypes.POINTER(_Pex_Status),
+    ]
+    lib.Pex_Get.restype = None
 
     return lib
 
