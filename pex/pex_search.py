@@ -138,7 +138,7 @@ class PexSearchClient(_Fingerprinter):
         self._c_client = _init_client(_ClientType.PEX_SEARCH, client_id, client_secret)
         super().__init__(self._c_client)
 
-    def start_search(self, req):
+    def start_search(self, req: PexSearchRequest) -> PexSearchFuture:
         """
         Starts a Pex search. This operation does not block until the
         search is finished, it does however perform a network operation to
@@ -151,7 +151,7 @@ class PexSearchClient(_Fingerprinter):
         """
         return self._start_search(req)
     
-    def start_isrc_search(self, req):
+    def start_isrc_search(self, req: ISRCSearchRequest) -> PexSearchFuture:
         """
         Starts a Pex search using an ISRC. This operation does not block until the
         search is finished, it does however perform a network operation to
@@ -164,7 +164,7 @@ class PexSearchClient(_Fingerprinter):
         """
         return self._start_search(req)
 
-    def _start_search(self, req):
+    def _start_search(self, req) -> PexSearchFuture:
         with (
             _Pex_Lock.new(_lib) as c_lock,
             _Pex_Status.new(_lib) as c_status,
