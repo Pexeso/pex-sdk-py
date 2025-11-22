@@ -316,6 +316,13 @@ def _load_lib():
     ]
     lib.Pex_StartSearchRequest_SetFingerprint.restype = None
 
+    lib.Pex_StartSearchRequest_SetISRC.argtypes = [
+        ctypes.POINTER(_Pex_StartSearchRequest),
+        ctypes.c_char_p,
+        ctypes.c_int,
+    ]
+    lib.Pex_StartSearchRequest_SetISRC.restype = None
+
     # Pex_StartSearchResult
     lib.Pex_StartSearchResult_New.argtypes = []
     lib.Pex_StartSearchResult_New.restype = ctypes.POINTER(_Pex_StartSearchResult)

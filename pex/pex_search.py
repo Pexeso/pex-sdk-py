@@ -18,7 +18,7 @@ from pex.lib import (
 )
 from pex.errors import Error
 from pex.client import _ClientType, _init_client
-from pex.fingerprint import _Fingerprinter
+from pex.fingerprint import _Fingerprinter, FingerprintType
 
 
 class PexSearchType(IntEnum):
@@ -57,6 +57,27 @@ class PexSearchRequest(object):
 
     def __repr__(self):
         return f"PexSearchRequest(fingerprint=...,type={self._type.name})"
+
+
+class ISRCSearchRequest(object):
+    """
+    Holds all data necessary to perform a pex search using an ISRC.
+    """
+
+    def __init__(self, isrc, ft_types=FingerprintType.ALL, type=PexSearchType.IDENTIFY_MUSIC):
+        """
+        Constructor.
+
+        :param str isrc: An ISRC to use for the search.
+        :param int ft_types: Fingerprint types to be used in the search.
+        :param PexSearchType type: A type of the pex search performed
+        """
+        self._isrc = isrc
+        self._ft_types = ft_types
+        self._type = type
+
+    def __repr__(self):
+        return f"ISRCSearchRequest(isrc={self._isrc},type={self._type.name})"
 
 
 class PexSearchFuture(object):
@@ -117,7 +138,7 @@ class PexSearchClient(_Fingerprinter):
         self._c_client = _init_client(_ClientType.PEX_SEARCH, client_id, client_secret)
         super().__init__(self._c_client)
 
-    def start_search(self, req):
+    def start_search(self, req: PexSearchRequest) -> PexSearchFuture:
         """
         Starts a Pex search. This operation does not block until the
         search is finished, it does however perform a network operation to
@@ -128,6 +149,22 @@ class PexSearchClient(_Fingerprinter):
                 because of network issues.
         :rtype: PexSearchFuture
         """
+        return self._start_search(req)
+    
+    def start_isrc_search(self, req: ISRCSearchRequest) -> PexSearchFuture:
+        """
+        Starts a Pex search using an ISRC. This operation does not block until the
+        search is finished, it does however perform a network operation to
+        initiate the search on the backend service.
+
+        :param ISRCSearchRequest req: search parameters.
+        :raise: :class:`Error` if the search couldn’t be initiated, e.g.
+                because of network issues.
+        :rtype: PexSearchFuture
+        """
+        return self._start_search(req)
+
+    def _start_search(self, req) -> PexSearchFuture:
         with (
             _Pex_Lock.new(_lib) as c_lock,
             _Pex_Status.new(_lib) as c_status,
@@ -135,13 +172,18 @@ class PexSearchClient(_Fingerprinter):
             _Pex_StartSearchRequest.new(_lib) as c_req,
             _Pex_StartSearchResult.new(_lib) as c_res,
         ):
-            _lib.Pex_Buffer_Set(c_ft.get(), req._fingerprint._ft, len(req._fingerprint._ft))
+            if isinstance(req, ISRCSearchRequest):
+                _lib.Pex_StartSearchRequest_SetISRC(
+                    c_req.get(), req._isrc.encode(), int(req._ft_types)
+                )
+            else:
+                _lib.Pex_Buffer_Set(c_ft.get(), req._fingerprint._ft, len(req._fingerprint._ft))
+                _lib.Pex_StartSearchRequest_SetFingerprint(
+                    c_req.get(), c_ft.get(), c_status.get()
+                )
+                Error.check_status(c_status)
 
             _lib.Pex_StartSearchRequest_SetType(c_req.get(), req._type)
-            _lib.Pex_StartSearchRequest_SetFingerprint(
-                c_req.get(), c_ft.get(), c_status.get()
-            )
-            Error.check_status(c_status)
 
             _lib.Pex_StartSearch(
                 self._c_client.get(), c_req.get(), c_res.get(), c_status.get()
